@@ -17,5 +17,6 @@ root.render(
 );
 
 // Ký hiệu phiên bản theo ngày phát hành, dạng ngày+tháng+năm rút gọn (6/8/26).
-// Mở DevTools trên site đang chạy là biết ngay bản nào đang được phục vụ.
-console.log('ver.6826');
+// Giá trị do vite.config.ts sinh tự động lúc build theo giờ Việt Nam, không cần
+// sửa tay. Mở DevTools trên site đang chạy là biết ngay bản nào đang phục vụ.
+console.log(`ver.${__APP_VERSION__}`);

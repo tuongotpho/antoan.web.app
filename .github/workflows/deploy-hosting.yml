@@ -42,8 +42,20 @@ jobs:
         # lặp lại được. Khác với npm install, nó không tự sửa lock file.
         run: npm ci
 
+      - name: Tính ký hiệu phiên bản theo ngày (giờ Việt Nam)
+        id: ver
+        # Runner chạy giờ UTC, nên ép TZ về Việt Nam để bản deploy lúc rạng sáng
+        # không bị đánh số của ngày hôm trước. Bỏ số 0 ở đầu ngày/tháng cho khớp
+        # quy ước đang dùng: 6/8/26 -> 6826.
+        run: |
+          VER=$(TZ=Asia/Ho_Chi_Minh date +'%-d%-m%y')
+          echo "app_version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Phiên bản phát hành: ver.$VER"
+          echo "### Đã deploy \`ver.$VER\`" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build
         env:
+          APP_VERSION: ${{ steps.ver.outputs.app_version }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
