@@ -15,3 +15,7 @@ root.render(
     <RouterProvider router={router} />
   </React.StrictMode>
 );
+
+// Ký hiệu phiên bản theo ngày phát hành, dạng ngày+tháng+năm rút gọn (6/8/26).
+// Mở DevTools trên site đang chạy là biết ngay bản nào đang được phục vụ.
+console.log('ver.6826');
