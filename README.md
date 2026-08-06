@@ -62,41 +62,89 @@ Nhập chủ đề → AI tạo bài viết hoàn chỉnh trong 15s
 - **AI**: Google Gemini 1.5 Flash
 - **Styling**: Tailwind CSS
 - **Icons**: Font Awesome
-- **Deployment**: Firebase Hosting
+- **Deployment**: Firebase Hosting, tự động qua GitHub Actions
 
-## 📦 Installation
+## 📦 Cài đặt
+
+Yêu cầu **Node.js 20** trở lên.
 
 ```bash
-# Clone repo
-git clone https://github.com/your-username/atld_google.git
-cd atld_google
-
-# Install dependencies
+git clone https://github.com/tuongotpho/antoan.web.app.git
+cd antoan.web.app
 npm install
-
-# Run development server
+cp .env.example .env    # điền cấu hình Firebase phía client
 npm run dev
 ```
 
-## 🔧 Development
+## 🔧 Lệnh thường dùng
 
 ```bash
-# Run dev server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Deploy to Firebase
-firebase deploy
+npm run dev        # chạy máy chủ phát triển (cổng 3000)
+npm run build      # build ra thư mục dist
+npm run preview    # xem thử bản build
+npm run lint       # kiểm tra mã nguồn
+npm test           # chạy test
 ```
 
-## 🌐 Live Demo
+## 🚀 Deploy
 
-🔗 **https://atld.web.app**
+### Hosting — tự động
+
+Push vào nhánh `main` là GitHub Actions tự build và deploy lên
+**antoan.web.app**. Xem tiến trình ở tab **Actions**.
+
+Workflow: [`.github/workflows/deploy-hosting.yml`](.github/workflows/deploy-hosting.yml).
+Nó chỉ deploy hosting target `main` (site `antoan`) — site `atld-connect`
+không bị ảnh hưởng.
+
+Cần một secret trong GitHub → Settings → Secrets → Actions:
+
+| Secret | Lấy ở đâu |
+|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | Chạy `firebase init hosting:github`, hoặc Firebase Console → Project settings → Service accounts → Generate new private key (dán toàn bộ JSON) |
+
+### Functions, Rules, Storage — chạy tay
+
+Workflow **không** deploy các phần này. Sau khi sửa `firestore.rules`,
+`storage.rules` hoặc thư mục `functions/`, chạy:
+
+```bash
+firebase deploy --only functions,firestore:rules,storage
+```
+
+## 🏷️ Ký hiệu phiên bản
+
+Mỗi bản build được gắn số theo **ngày phát hành**, dạng ngày+tháng+năm rút gọn
+— ví dụ 6/8/2026 là `ver.6826`. Số này sinh tự động trong
+[`vite.config.ts`](vite.config.ts), **không cần sửa tay**, và luôn tính theo giờ
+Việt Nam (máy chạy CI dùng giờ UTC nên bản deploy lúc rạng sáng sẽ bị lệch ngày
+nếu không quy đổi).
+
+Xem phiên bản đang chạy ở hai chỗ:
+
+- **Cuối trang web** — cạnh dòng bản quyền
+- **Console trình duyệt** (F12 → Console)
+
+Hữu ích khi có sự cố: chỉ cần hỏi "cuối trang ghi ver mấy?" là biết máy đó đang
+chạy bản nào, hay đang kẹt bản cũ trong cache.
+
+## 🔐 Quản lý bí mật
+
+Không đặt khoá bí mật vào mã nguồn hay tài liệu — repo này công khai.
+
+| Bí mật | Nơi lưu đúng |
+|---|---|
+| Token Telegram bot | `firebase functions:config:set telegram.bot_token="..." telegram.chat_id="..."` |
+| `GEMINI_API_KEY` | Secret của Cloud Functions (`functions.runWith({ secrets: [...] })`) — **không** đưa vào bundle client |
+| Cấu hình Firebase phía client | `.env` (đã có trong `.gitignore`); các khoá `VITE_FIREBASE_*` này công khai theo thiết kế, không phải bí mật |
+
+Việc gửi email đi qua callable function `sendAppEmail` (có kiểm tra đăng nhập).
+Client **không** ghi thẳng vào collection `mail` — rules đã khoá, vì mở ra đồng
+nghĩa ai cũng gửi được email mang tên miền này.
+
+## 🌐 Bản đang chạy
+
+🔗 **https://antoan.web.app**
 
 ## 📄 License
 

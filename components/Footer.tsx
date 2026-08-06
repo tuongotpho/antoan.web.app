@@ -16,7 +16,14 @@ const Footer: React.FC = () => {
             Liên hệ Zalo: 0982.722.036
           </a>
         </div>
-        <p className="text-xs text-gray-500 pt-4">&copy; {new Date().getFullYear()} SafetyConnect. All Rights Reserved.</p>
+        <p className="text-xs text-gray-500 pt-4">
+          &copy; {new Date().getFullYear()} SafetyConnect. All Rights Reserved.
+          {/* Ký hiệu phiên bản do vite.config.ts sinh theo ngày phát hành.
+              Hiện ở đây để khi có sự cố chỉ cần hỏi "cuối trang ghi ver mấy?"
+              là biết máy đó đang chạy bản nào hay đang kẹt cache bản cũ. */}
+          <span className="mx-1 text-gray-600">·</span>
+          <span title="Phiên bản phát hành">ver.{__APP_VERSION__}</span>
+        </p>
       </div>
     </footer>
   );
