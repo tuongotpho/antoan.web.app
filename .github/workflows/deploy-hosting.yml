@@ -1,0 +1,65 @@
+# Tự động build và deploy lên Firebase Hosting site "antoan" (antoan.web.app)
+# mỗi khi có push vào nhánh main.
+#
+# CHỈ deploy target "main" — target "atld" (atld-connect.web.app) không đụng tới.
+#
+# Cần tạo trước 2 secret trong GitHub → Settings → Secrets and variables → Actions:
+#   FIREBASE_SERVICE_ACCOUNT  — nội dung JSON của service account (xem README-DEPLOY.md)
+#   VITE_FIREBASE_*           — các biến cấu hình Firebase phía client (nếu muốn
+#                               ghi đè giá trị mặc định trong mã nguồn)
+name: Deploy Hosting (antoan.web.app)
+
+on:
+  push:
+    branches: [main]
+  # Cho phép bấm chạy tay từ tab Actions
+  workflow_dispatch:
+
+# Nếu push liên tiếp, huỷ lượt chạy cũ để không deploy chồng nhau
+concurrency:
+  group: deploy-hosting-antoan
+  cancel-in-progress: true
+
+jobs:
+  build_and_deploy:
+    name: Build và deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Cài dependencies
+        # npm ci đọc package-lock.json — cài đúng phiên bản đã khoá, nhanh và
+        # lặp lại được. Khác với npm install, nó không tự sửa lock file.
+        run: npm ci
+
+      - name: Build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+        run: npm run build
+
+      - name: Deploy lên Firebase Hosting (site antoan)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: atld-connect
+          # Đây là TÊN TARGET trong .firebaserc, không phải tên site.
+          # .firebaserc khai: "main" -> site "antoan"; "atld" -> site "atld-connect".
+          # Dùng "main" nên chỉ antoan.web.app được deploy, atld-connect không đụng tới.
+          target: main
+          channelId: live

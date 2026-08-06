@@ -3,7 +3,15 @@
 ## 🤖 Thông Tin Bot
 
 - **Bot Name**: @Antoanketnoi_bot
-- **Bot Token**: `8474740440:AAFmqXZVe0tMLX1KVkuvrV1x-cLPTIo_CSI`
+- **Bot Token**: KHÔNG ghi token vào tài liệu hay mã nguồn.
+
+> ⚠️ Token cũ từng nằm cứng trong `functions/index.js` và trong chính file này,
+> trên một repo công khai — coi như đã lộ. Hãy thu hồi qua @BotFather rồi nạp
+> token mới bằng lệnh:
+>
+> ```
+> firebase functions:config:set telegram.bot_token="TOKEN_MOI" telegram.chat_id="CHAT_ID"
+> ```
 
 ## 📋 Các Bước Cấu Hình
 
@@ -15,7 +23,7 @@
 4. Mở trình duyệt và truy cập URL sau:
 
 ```
-https://api.telegram.org/bot8474740440:AAFmqXZVe0tMLX1KVkuvrV1x-cLPTIo_CSI/getUpdates
+https://api.telegram.org/bot<TOKEN_CUA_BAN>/getUpdates
 ```
 
 5. Tìm phần `"chat":{"id": 123456789}` - đây là **Chat ID** của bạn

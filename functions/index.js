@@ -8,8 +8,17 @@ initializeApp();
 const db = getFirestore();
 
 // Telegram Bot Configuration
-const TELEGRAM_BOT_TOKEN = '8474740440:AAFmqXZVe0tMLX1KVkuvrV1x-cLPTIo_CSI';
-const TELEGRAM_CHAT_ID = '-1003352885569'; // Your Telegram Chat ID
+//
+// CẢNH BÁO: trước đây token nằm cứng ngay trong file này và đã bị đẩy lên một
+// repo công khai — coi như lộ vĩnh viễn (vẫn còn trong lịch sử git). Token cũ
+// PHẢI được thu hồi qua @BotFather; đổi code thôi là chưa đủ.
+//
+// Đặt giá trị mới bằng một trong hai cách:
+//   firebase functions:config:set telegram.bot_token="..." telegram.chat_id="..."
+// hoặc biến môi trường TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID.
+const telegramConfig = (functions.config && functions.config().telegram) || {};
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || telegramConfig.bot_token || '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || telegramConfig.chat_id || '';
 
 /**
  * Send message to Telegram
@@ -119,6 +128,44 @@ exports.notifyNewTrainingRequest = functions.firestore
       console.error('Error in notifyNewTrainingRequest:', error);
     }
   });
+
+/**
+ * Cloud Function V1: Gửi email (thay cho việc client ghi thẳng vào /mail).
+ *
+ * Rules đã khoá collection `mail` với client. Hàm này kiểm tra người gọi đã
+ * đăng nhập rồi mới ghi bằng Admin SDK (bỏ qua rules), để extension Trigger
+ * Email gửi đi. Nhờ vậy không còn ai gửi được email ẩn danh từ tên miền này.
+ */
+exports.sendAppEmail = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Cần đăng nhập để gửi email');
+  }
+
+  const { to, subject, html, text } = data || {};
+
+  const recipients = Array.isArray(to) ? to : [to];
+  const validEmail = (e) => typeof e === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+
+  if (recipients.length === 0 || recipients.length > 50 || !recipients.every(validEmail)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Danh sách người nhận không hợp lệ');
+  }
+  if (typeof subject !== 'string' || subject.length === 0 || subject.length > 300) {
+    throw new functions.https.HttpsError('invalid-argument', 'Tiêu đề không hợp lệ');
+  }
+  if (typeof html !== 'string' || html.length === 0 || html.length > 200000) {
+    throw new functions.https.HttpsError('invalid-argument', 'Nội dung không hợp lệ');
+  }
+
+  const docRef = await db.collection('mail').add({
+    to: recipients,
+    message: { subject, html, ...(text ? { text } : {}) },
+    createdAt: new Date(),
+    // Ghi lại ai yêu cầu gửi, để lần theo khi có lạm dụng
+    requestedBy: context.auth.uid,
+  });
+
+  return { id: docRef.id };
+});
 
 /**
  * Cloud Function V1: Test Telegram notification

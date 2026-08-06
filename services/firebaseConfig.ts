@@ -27,6 +27,7 @@ import {
   CollectionReference,
   Query,
 } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   getAuth,
   Auth,
@@ -71,34 +72,32 @@ if (!getApps().length) {
 const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
+// Cloud Functions đang deploy ở us-central1 (mặc định của firebase-functions v1)
+const functionsInstance = getFunctions(app);
 
-// Function to send email via Firestore extension
+/**
+ * Gửi email qua Cloud Function.
+ *
+ * TRƯỚC ĐÂY hàm này ghi thẳng vào collection `mail`, mà rules lại cho phép
+ * `create: if true` — nghĩa là bất kỳ ai trên Internet cũng gửi được email tuỳ
+ * ý mang tên miền này (lừa đảo, spam, tên miền bị đưa vào danh sách đen).
+ *
+ * NAY client chỉ gọi callable function; function kiểm tra đăng nhập rồi mới
+ * ghi vào `mail` bằng Admin SDK. Rules đã khoá hoàn toàn phía client.
+ */
 const sendEmail = async (to: string | string[], subject: string, html: string, text?: string) => {
   try {
-    const mailCollection = collection(db, 'mail');
-    const emailData = {
-      to: to,
-      message: {
-        subject: subject,
-        html: html,
-        ...(text && { text: text }),
-      },
-      createdAt: serverTimestamp(),
-    };
-
-    const docRef = await addDoc(mailCollection, emailData);
-    return docRef.id;
+    const callable = httpsCallable<
+      { to: string | string[]; subject: string; html: string; text?: string },
+      { id: string }
+    >(functionsInstance, 'sendAppEmail');
+    const result = await callable({ to, subject, html, ...(text && { text }) });
+    return result.data.id;
   } catch (error: any) {
     console.error('Error queuing email:', error);
-
-    if (error.code === 'permission-denied') {
-      console.error(
-        'PERMISSION DENIED: Firestore rules may not allow writing to "mail" collection'
-      );
-    } else if (error.code === 'unauthenticated') {
-      console.error('UNAUTHENTICATED: User may need to be signed in');
+    if (error.code === 'functions/unauthenticated') {
+      console.error('UNAUTHENTICATED: Cần đăng nhập mới gửi được email');
     }
-
     throw error;
   }
 };

@@ -11,17 +11,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Đối tác ĐÃ ĐƯỢC DUYỆT. Dùng thay cho isAuthenticated() ở những chỗ chứa
+    // dữ liệu kinh doanh: tạo tài khoản Google chỉ mất 10 giây, nên
+    // "đã đăng nhập" gần như tương đương "bất kỳ ai trên Internet".
+    function isApprovedPartner() {
+      return isAuthenticated()
+             && exists(/databases/$(database)/documents/partners/$(request.auth.uid))
+             && get(/databases/$(database)/documents/partners/$(request.auth.uid)).data.status == 'approved';
+    }
+
     // === YÊU CẦU HUẤN LUYỆN ===
 
     match /trainingRequests/{requestId} {
       allow create: if true;  // Ai cũng tạo được (public form)
 
-      // Chỉ cho phép authenticated users và admins đọc để bảo vệ thông tin cá nhân
-      allow read: if isAuthenticated() || isAdmin();
+      // Danh sách yêu cầu là tài sản kinh doanh: chứa tên công ty, người liên
+      // hệ, SĐT, email, số học viên. Trước đây mở cho MỌI tài khoản đã đăng
+      // nhập — đối thủ chỉ cần đăng ký một tài khoản là hút sạch lead.
+      allow read: if isAdmin() || isApprovedPartner();
 
-      // Authenticated users có thể update viewedBy array
-      allow update: if isAuthenticated() && (
-        // Chỉ cho phép update viewedBy field
+      // Đối tác đã duyệt chỉ được đánh dấu đã xem
+      allow update: if isApprovedPartner() && (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewedBy'])
       ) || isAdmin();  // Admin update tất cả
 
@@ -33,8 +43,10 @@ service cloud.firestore {
     match /partners/{partnerId} {
       allow create: if isAuthenticated() && request.auth.uid == partnerId;
 
-// Allow public read ONLY for email notification purpose (query approved partners)
-      allow read: if true;  // Cho phép đọc để tìm partners gửi email
+      // Trước đây mở đọc công khai để client query email đối tác rồi tự gửi mail.
+      // Việc đó đã chuyển sang Cloud Function (dùng Admin SDK, bỏ qua rules),
+      // nên không cần mở nữa — email và SĐT đối tác không còn bị thu thập tự do.
+      allow read: if isAuthenticated();
       allow update: if isAuthenticated() && (request.auth.uid == partnerId || isAdmin());
       allow delete: if isAdmin();
     }
@@ -75,9 +87,15 @@ service cloud.firestore {
     }
 
     // === EMAIL COLLECTION (cho Firebase Extension) ===
+    //
+    // TRƯỚC ĐÂY: `allow create: if true` — client tự đặt to/subject/html rồi
+    // extension gửi đi. Tức bất kỳ ai trên Internet cũng gửi được email tuỳ ý
+    // mang tên miền này: lừa đảo, spam, và tên miền bị đưa vào danh sách đen.
+    //
+    // NAY: client không ghi thẳng nữa. Mọi email đi qua Cloud Function
+    // (Admin SDK bỏ qua rules), nên khoá hoàn toàn phía client.
     match /mail/{mailId} {
-      allow create: if true;  // Ai cũng tạo được (để send email)
-      allow read, update, delete: if false;  // Chỉ extension xử lý
+      allow create, read, update, delete: if false;
     }
 
     // === USERS COLLECTION (optional) ===

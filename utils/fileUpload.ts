@@ -9,8 +9,11 @@ import { storage, storageRef, uploadBytes, getDownloadURL } from '../services/fi
  */
 export const uploadFile = async (file: File, folder: string, userId: string): Promise<string> => {
   const timestamp = Date.now();
-  const filename = `${userId}_${timestamp}_${file.name}`;
-  const filePath = `${folder}/${filename}`;
+  // Đặt uid thành THƯ MỤC chứ không phải tiền tố tên file. Storage rules chỉ
+  // so khớp được theo đoạn đường dẫn, nên `folder/uid_file.png` không thể ràng
+  // buộc quyền theo chủ sở hữu, còn `folder/uid/file.png` thì có.
+  const filename = `${timestamp}_${file.name}`;
+  const filePath = `${folder}/${userId}/${filename}`;
   const fileRef = storageRef(storage, filePath);
 
   // Upload file

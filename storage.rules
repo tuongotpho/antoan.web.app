@@ -44,8 +44,9 @@ match /b/{bucket}/o {
                       validFileSize(5) &&
                       validFileType('image/.*');
 
-      // Only uploader or admin can delete
-      allow delete: if isAuthenticated() || isAdmin();
+      // Chỉ admin xoá — trước đây `isAuthenticated() || isAdmin()` nghĩa là
+      // bất kỳ ai đăng nhập cũng xoá được ảnh bình luận của người khác.
+      allow delete: if isAdmin();
     }
 
     // === DOCUMENT UPLOADS ===
@@ -62,21 +63,28 @@ match /b/{bucket}/o {
     }
 
     // === QUOTE ATTACHMENTS ===
-    match /quote-attachments/{attachmentId} {
-
-      // Only authenticated partners can upload attachments
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
+    // File báo giá chứa giá và năng lực của từng đối tác. Trước đây mọi tài
+    // khoản đã đăng nhập đều đọc/sửa/XOÁ được file của người khác — vừa lộ giá
+    // cho đối thủ, vừa cho phép phá hoại. Nay đặt file trong thư mục theo uid
+    // để chỉ chủ file và admin thao tác được.
+    match /quote-attachments/{userId}/{attachmentId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId &&
+                       validFileSize(10);
+      allow update, delete: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // === CHAT ATTACHMENTS ===
-    match /chat-attachments/{fileName} {
-      // Authenticated users can read and upload chat attachments
+    // Comment cũ ghi "chỉ xoá file của mình" nhưng điều kiện thực tế là
+    // `request.auth.uid != null` — tức chỉ cần đăng nhập là xoá được file của
+    // bất kỳ ai. Nay uid nằm trong đường dẫn nên ràng buộc được thật.
+    match /chat-attachments/{userId}/{fileName} {
+      // Người trong cuộc trò chuyện cần đọc được file đối phương gửi,
+      // nên vẫn cho mọi tài khoản đã đăng nhập đọc.
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      // Users can only delete their own uploads (filename contains their uid)
-      allow delete: if isAuthenticated() && request.auth.uid != null;
+      allow create: if isAuthenticated() && request.auth.uid == userId &&
+                       validFileSize(10);
+      allow update, delete: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // === DEFAULT DENY ===
