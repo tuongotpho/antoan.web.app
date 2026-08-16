@@ -7,12 +7,32 @@ import { storage, storageRef, uploadBytes, getDownloadURL } from '../services/fi
  * @param userId - User ID for unique filename
  * @returns Download URL of uploaded file
  */
+/**
+ * Làm sạch tên file trước khi ghép vào đường dẫn Storage.
+ *
+ * Tên file do người dùng đặt, nên có thể chứa dấu gạch chéo (tạo thư mục ngoài
+ * ý muốn), dấu ? và # (cắt đứt địa chỉ tải về), hoặc dài hàng trăm ký tự.
+ * Giữ lại chữ, số, dấu chấm, gạch ngang, gạch dưới; còn lại đổi thành gạch dưới.
+ */
+export const lamSachTenFile = (tenGoc: string): string => {
+  const ten = (tenGoc || 'file').trim().replace(/^.*[\\/]/, ''); // bỏ mọi phần đường dẫn
+  const daySach = ten
+    .normalize('NFC')
+    .replace(/[^\p{L}\p{N}._-]+/gu, '_')
+    .replace(/_{2,}/g, '_')
+    .replace(/^[._]+/, '');
+
+  const ketQua = daySach || 'file';
+  // Chừa chỗ cho tiền tố thời gian; đường dẫn Storage tối đa 1024 ký tự.
+  return ketQua.length > 120 ? ketQua.slice(-120) : ketQua;
+};
+
 export const uploadFile = async (file: File, folder: string, userId: string): Promise<string> => {
   const timestamp = Date.now();
   // Đặt uid thành THƯ MỤC chứ không phải tiền tố tên file. Storage rules chỉ
   // so khớp được theo đoạn đường dẫn, nên `folder/uid_file.png` không thể ràng
   // buộc quyền theo chủ sở hữu, còn `folder/uid/file.png` thì có.
-  const filename = `${timestamp}_${file.name}`;
+  const filename = `${timestamp}_${lamSachTenFile(file.name)}`;
   const filePath = `${folder}/${userId}/${filename}`;
   const fileRef = storageRef(storage, filePath);
 
@@ -41,10 +61,13 @@ export const getFileType = (mimeType: string): string => {
  * @returns Formatted file size string
  */
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  // Chặn các giá trị làm vỡ phép log bên dưới: 0 cho ra -Infinity, số âm cho ra
+  // NaN, và cỡ lớn hơn GB thì chỉ số vượt mảng đơn vị → hiện ra "1 undefined".
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 Bytes';
+
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
@@ -57,7 +80,10 @@ export const formatFileSize = (bytes: number): string => {
 export const validateFile = (file: File, maxSizeMB: number = 10): string | null => {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
-  if (file.size > maxSizeBytes) {
+  // Dùng >= chứ không phải >: storage.rules chặn bằng `size < maxMB * 1024 * 1024`,
+  // nên một file đúng chằn 10MB lọt qua kiểm tra ở client rồi mới bị máy chủ từ
+  // chối — người dùng chờ tải xong mới nhận một lỗi khó hiểu.
+  if (file.size >= maxSizeBytes) {
     return `File quá lớn. Kích thước tối đa: ${maxSizeMB}MB`;
   }
 

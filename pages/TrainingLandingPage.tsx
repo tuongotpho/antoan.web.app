@@ -484,10 +484,19 @@ const TrainingLandingPage: React.FC = () => {
     }
   };
 
+  // 6 trên 8 tiêu đề đã sẵn chữ "Trực Tuyến"/"Online", nên nối thêm một lần nữa
+  // tạo ra những tiêu đề lặp như "…An Toàn Điện Trực Tuyến & Online Trực Tuyến,
+  // Online | SafetyConnect": vừa dài quá mức Google hiển thị (~60 ký tự), vừa
+  // lộ rõ là nhồi từ khoá. Chỉ nối thêm khi tiêu đề chưa có sẵn.
+  const daCoTuKhoaOnline = /trực tuyến|online/i.test(data.title);
+  const tieuDeSEO = daCoTuKhoaOnline
+    ? `${data.title} | SafetyConnect`
+    : `${data.title} Trực Tuyến, Online | SafetyConnect`;
+
   return (
     <div className="bg-neutral-light min-h-screen">
       <SEOHead
-        title={`${data.title} Trực Tuyến, Online | SafetyConnect`}
+        title={tieuDeSEO}
         description={data.metaDescription}
         url={`https://antoan.web.app/training/${trainingType}`}
         keywords={[...data.keywords, 'huấn luyện trực tuyến', 'đào tạo online', 'học an toàn online']}
@@ -666,10 +675,14 @@ const TrainingLandingPage: React.FC = () => {
             Tại Sao Chọn SafetyConnect Cho {data.title}?
           </h2>
           <div className="prose max-w-none">
+            {/* Đoạn này trước đây ghi "mạng lưới hơn 50+ đối tác đào tạo uy tín
+                trên toàn quốc" — con số không có thật, bảng partners đang trống.
+                Nó lặp lại đúng thứ đã gỡ ở khối số liệu trang chủ, chỉ là sót
+                lại ở đây. Nay chỉ nói đúng cơ chế hoạt động của nền tảng. */}
             <p className="text-gray-700 leading-relaxed mb-4">
-              SafetyConnect là nền tảng kết nối chuyên nghiệp giữa doanh nghiệp và các đơn vị đào tạo an
-              toàn lao động chuyên nghiệp. Với mạng lưới hơn 50+ đối tác đào tạo uy tín trên toàn
-              quốc, chúng tôi cam kết mang đến cho bạn:
+              SafetyConnect là nền tảng kết nối doanh nghiệp với các đơn vị đào tạo an toàn lao
+              động. Doanh nghiệp gửi một yêu cầu, các đơn vị đào tạo phù hợp sẽ gửi báo giá về để
+              so sánh và lựa chọn:
             </p>
             <ul className="grid md:grid-cols-2 gap-3 mb-4">
               <li className="flex items-start">
@@ -684,9 +697,13 @@ const TrainingLandingPage: React.FC = () => {
                 <i className="fas fa-check-double text-green-500 mr-2 mt-1"></i>
                 <span>Chứng chỉ hợp lệ, đúng quy định</span>
               </li>
+              {/* Trước đây ghi "Hỗ trợ tư vấn miễn phí 24/7". Nền tảng do một
+                  đầu mối vận hành nên cam kết 24/7 khó giữ đúng — hứa rồi không
+                  làm được còn hại hơn không hứa. Nay nói đúng kênh liên hệ đang
+                  có thật (hotline và Zalo ở chân trang). */}
               <li className="flex items-start">
                 <i className="fas fa-check-double text-green-500 mr-2 mt-1"></i>
-                <span>Hỗ trợ tư vấn miễn phí 24/7</span>
+                <span>Tư vấn miễn phí qua điện thoại và Zalo</span>
               </li>
             </ul>
             <p className="text-gray-700 leading-relaxed">

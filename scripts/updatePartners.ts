@@ -1,15 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 
-// Firebase config - copy from your firebaseConfig.ts
+// Cấu hình Firebase — phải khớp với services/firebaseConfig.ts.
+// Trước đây file này trỏ sang project gen-lang-client-0113063590, tức script
+// chạy xong sẽ sửa dữ liệu ở project KHÔNG phải project app đang dùng.
 const firebaseConfig = {
-  apiKey: 'AIzaSyCf5P3bEEJxqxo5Gu8OtQXdWM9NwYSA4eM',
-  authDomain: 'gen-lang-client-0113063590.firebaseapp.com',
-  projectId: 'gen-lang-client-0113063590',
-  storageBucket: 'gen-lang-client-0113063590.firebasestorage.app',
-  messagingSenderId: '808783437931',
-  appId: '1:808783437931:web:cbcea9cb98c14fe9f08eb3',
-  measurementId: 'G-F5VLX1M8VX',
+  apiKey: 'AIzaSyCFRcMNj_vOOqOaJlGbLbGF6Z1HpawGyDg',
+  authDomain: 'atld-connect.firebaseapp.com',
+  projectId: 'atld-connect',
+  storageBucket: 'atld-connect.firebasestorage.app',
+  messagingSenderId: '745800129021',
+  appId: '1:745800129021:web:8b37c115c4327930dc6194',
 };
 
 const app = initializeApp(firebaseConfig);

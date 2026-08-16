@@ -43,7 +43,25 @@ const TrustedPartnersSection: React.FC = () => {
                 setTrustedPartners(partnersData.slice(0, 3));
             },
             (err) => {
-                console.error('Error fetching trusted partners: ', err);
+                // permission-denied ở đây KHÔNG phải hỏng hóc: firestore.rules
+                // yêu cầu đăng nhập mới đọc được bảng partners (để đối thủ không
+                // hút được email và số điện thoại đối tác). Khách vãng lai vì thế
+                // luôn rơi vào nhánh này, và khối bên dưới hiện "Đang cập nhật
+                // đối tác".
+                //
+                // Muốn khách chưa đăng nhập cũng thấy được danh sách đối tác thì
+                // phải chọn một trong hai hướng, xem mục A1b của phiếu kiểm định:
+                //   - mở rules cho đọc công khai hồ sơ đã duyệt (đánh đổi: lộ
+                //     email/SĐT đối tác), hoặc
+                //   - tách phần giới thiệu công khai sang bảng riêng, giữ thông
+                //     tin liên hệ ở bảng cần đăng nhập.
+                if (err?.code === 'permission-denied') {
+                    console.warn(
+                        'Danh sách đối tác chỉ hiển thị cho người đã đăng nhập (theo firestore.rules).'
+                    );
+                    return;
+                }
+                console.error('Lỗi khi tải danh sách đối tác: ', err);
             }
         );
 

@@ -1,5 +1,10 @@
+/* eslint-disable react-refresh/only-export-components --
+   File này chỉ khai báo bảng định tuyến, không phải nơi định nghĩa component.
+   Mỗi dòng `lazy(() => import(...))` đều bị quy tắc hot-reload của React đếm là
+   một component xuất khẩu sai chỗ, sinh ra 10 cảnh báo nhiễu che mất những cảnh
+   báo thật. Tách chúng ra file khác không làm mã tốt lên, chỉ để chiều quy tắc. */
 import React, { lazy } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 
 // Lazy load pages for better performance
@@ -12,6 +17,7 @@ const ChatPage = lazy(() => import('./pages/ChatPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
 const TrainingLandingPage = lazy(() => import('./pages/TrainingLandingPage'));
 const AllPartnersPage = lazy(() => import('./pages/AllPartnersPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 export const router = createBrowserRouter([
   {
@@ -56,10 +62,14 @@ export const router = createBrowserRouter([
         path: 'training/:type',
         element: <TrainingLandingPage />,
       },
-      // Catch-all redirect to home
+      // Địa chỉ không khớp route nào.
+      //
+      // TRƯỚC ĐÂY chuyển hướng lặng lẽ về trang chủ. Người dùng bấm phải link
+      // hỏng thì thấy trang chủ và tưởng website lỗi; còn Google coi đó là
+      // "404 giả" — địa chỉ rác vẫn vào chỉ mục và kéo điểm cả site xuống.
       {
         path: '*',
-        element: <Navigate to="/" replace />,
+        element: <NotFoundPage />,
       },
     ],
   },

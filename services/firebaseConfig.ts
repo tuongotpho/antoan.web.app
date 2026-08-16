@@ -47,17 +47,28 @@ import {
   type FirebaseStorage,
 } from 'firebase/storage';
 
-// Firebase configuration from environment variables
+// Cấu hình Firebase phía client.
+//
+// Các khoá VITE_FIREBASE_* này công khai theo thiết kế (không phải bí mật) —
+// việc chặn truy cập là do firestore.rules và storage.rules đảm nhiệm.
+//
+// Giá trị dự phòng bên dưới trỏ về project atld-connect, đúng project mà
+// hosting đang deploy vào (.firebaserc). TRƯỚC ĐÂY chúng trỏ sang một project
+// khác (gen-lang-client-0113063590), nên bản build ngoài đời chạy trên project
+// này còn lệnh `firebase deploy` lại nạp rules vào project kia — rules sửa xong
+// mà không bao giờ có hiệu lực. Ngoài ra authDomain cũ còn bị thiếu một chữ số
+// ('013063590' thay vì '0113063590'), đủ để làm hỏng luồng đăng nhập Google.
+//
+// LƯU Ý: nếu GitHub Secrets có đặt VITE_FIREBASE_* thì giá trị đó sẽ ghi đè
+// phần dự phòng này lúc build. Đổi project thì phải kiểm cả hai nơi.
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBVkNiY3B4yIdCGH4afN8xnrQGP4-U685Q',
-  authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'gen-lang-client-013063590.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0113063590',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyCFRcMNj_vOOqOaJlGbLbGF6Z1HpawGyDg',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'atld-connect.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'atld-connect',
   storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
-    'gen-lang-client-0113063590.firebasestorage.app',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '40246586993',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:402246586993:web:a2a3af0df097e2d5ae41d0',
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'atld-connect.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '745800129021',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:745800129021:web:8b37c115c4327930dc6194',
 };
 
 // Initialize Firebase

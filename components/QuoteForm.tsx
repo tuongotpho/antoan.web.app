@@ -14,6 +14,7 @@ import {
   getOrCreateAdminPartnerChatRoom,
   sendQuoteNotificationToAdminChat,
 } from '../utils/chatHelpers';
+import { layTenHienThiDoiTac, khachDongYNhanEmail } from '../utils/quoteHelpers';
 
 interface QuoteFormProps {
   request: TrainingRequest;
@@ -80,7 +81,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
       const partnerDocRef = doc(db, 'partners', partnerUid);
       const partnerDoc = await getDoc(partnerDocRef);
       const partnerData = partnerDoc.data();
-      const partnerName = partnerData?.taxId || partnerEmail;
+      const partnerName = layTenHienThiDoiTac(partnerData, partnerEmail);
 
       // Create quote document
       const quoteData = {
@@ -97,7 +98,7 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
       };
 
       const quotesCollection = collection(db, 'quotes');
-      const quoteRef = await addDoc(quotesCollection, quoteData);
+      await addDoc(quotesCollection, quoteData);
 
       // Tạo phòng chat với admin (nếu chưa có) và gửi thông báo
       try {
@@ -113,25 +114,29 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
         // Không fail toàn bộ operation nếu chat bị lỗi
       }
 
-      // Send email notification to client
-      try {
-        const emailHtml = generateQuoteNotificationEmail({
-          clientName: request.clientName,
-          requestId: request.id,
-          partnerName: partnerName,
-          partnerEmail: partnerEmail,
-          price: priceNumber,
-          timeline: formData.timeline,
-          notes: formData.notes,
-          trainingDetails: request.trainingDetails,
-        });
+      // Gửi email báo cho khách — nhưng chỉ khi khách đồng ý nhận.
+      if (!khachDongYNhanEmail(request)) {
+        setSuccess('Báo giá đã được gửi thành công! (Khách hàng đã chọn không nhận email thông báo)');
+      } else {
+        try {
+          const emailHtml = generateQuoteNotificationEmail({
+            clientName: request.clientName,
+            requestId: request.id,
+            partnerName: partnerName,
+            partnerEmail: partnerEmail,
+            price: priceNumber,
+            timeline: formData.timeline,
+            notes: formData.notes,
+            trainingDetails: request.trainingDetails,
+          });
 
-        await sendEmail(request.clientEmail, 'Bạn có báo giá mới từ đối tác đào tạo', emailHtml);
-        setSuccess('Báo giá đã được gửi thành công! Khách hàng sẽ nhận được thông báo qua email.');
-      } catch (emailError) {
-        console.error('Error sending email:', emailError);
-        // Don't fail the whole operation if email fails
-        setSuccess('Báo giá đã được lưu thành công! (Lưu ý: Có lỗi khi gửi email thông báo)');
+          await sendEmail(request.clientEmail, 'Bạn có báo giá mới từ đối tác đào tạo', emailHtml);
+          setSuccess('Báo giá đã được gửi thành công! Khách hàng sẽ nhận được thông báo qua email.');
+        } catch (emailError) {
+          console.error('Error sending email:', emailError);
+          // Không để lỗi gửi mail làm hỏng cả việc lưu báo giá
+          setSuccess('Báo giá đã được lưu thành công! (Lưu ý: Có lỗi khi gửi email thông báo)');
+        }
       }
 
       // Reset form

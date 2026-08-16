@@ -1,3 +1,5 @@
+import { escapeHtml, escapeHtmlGiuXuongDong } from './htmlEscape';
+
 interface TrainingDetail {
   type: string;
   group: string;
@@ -220,10 +222,10 @@ export const generatePartnerNotificationEmail = (
           .map(
             (detail) => `
           <div class="training-item">
-            <strong>${detail.type}</strong>
+            <strong>${escapeHtml(detail.type)}</strong>
             <div class="meta">
-              <span>👥 Nhóm: ${detail.group}</span>
-              <span>🎓 Số lượng: ${detail.participants} học viên</span>
+              <span>👥 Nhóm: ${escapeHtml(detail.group)}</span>
+              <span>🎓 Số lượng: ${escapeHtml(detail.participants)} học viên</span>
             </div>
           </div>
         `
@@ -239,27 +241,27 @@ export const generatePartnerNotificationEmail = (
         <div class="info-grid">
           <div class="info-item">
             <div class="label">Tên liên hệ:</div>
-            <div class="value">${clientInfo.clientName}</div>
+            <div class="value">${escapeHtml(clientInfo.clientName)}</div>
           </div>
           <div class="info-item">
             <div class="label">Email:</div>
-            <div class="value"><a href="mailto:${clientInfo.clientEmail}" style="color: #3b82f6; text-decoration: none;">${clientInfo.clientEmail}</a></div>
+            <div class="value"><a href="mailto:${escapeHtml(clientInfo.clientEmail)}" style="color: #3b82f6; text-decoration: none;">${escapeHtml(clientInfo.clientEmail)}</a></div>
           </div>
           <div class="info-item">
             <div class="label">Điện thoại:</div>
-            <div class="value"><a href="tel:${clientInfo.clientPhone}" style="color: #3b82f6; text-decoration: none;">${clientInfo.clientPhone}</a></div>
+            <div class="value"><a href="tel:${escapeHtml(clientInfo.clientPhone)}" style="color: #3b82f6; text-decoration: none;">${escapeHtml(clientInfo.clientPhone)}</a></div>
           </div>
           <div class="info-item">
             <div class="label">Địa điểm:</div>
-            <div class="value">📍 ${clientInfo.location}</div>
+            <div class="value">📍 ${escapeHtml(clientInfo.location)}</div>
           </div>
           <div class="info-item">
             <div class="label">Thời lượng:</div>
-            <div class="value">⏱️ ${clientInfo.trainingDuration}</div>
+            <div class="value">⏱️ ${escapeHtml(clientInfo.trainingDuration)}</div>
           </div>
           <div class="info-item">
             <div class="label">Thời gian mong muốn:</div>
-            <div class="value">📅 ${clientInfo.preferredTime}</div>
+            <div class="value">📅 ${escapeHtml(clientInfo.preferredTime)}</div>
           </div>
         </div>
       </div>
@@ -270,12 +272,15 @@ export const generatePartnerNotificationEmail = (
       <div class="section">
         <div class="section-title">📝 Mô tả chi tiết</div>
         <div style="background-color: #f8fafc; padding: 16px; border-radius: 6px; line-height: 1.6; color: #334155;">
-          ${clientInfo.description}
+          ${escapeHtmlGiuXuongDong(clientInfo.description)}
         </div>
       </div>
 
       <!-- CTA Button -->
-      <a href="https://atld.web.app/login" class="cta-button">
+      <!-- Trước đây trỏ https://atld.web.app/login: sai tên miền, và /login là
+           đường dẫn không có trong router (đăng nhập là hộp thoại ngay tại
+           trang danh sách yêu cầu). Đối tác bấm vào chỉ tới trang trống. -->
+      <a href="https://antoan.web.app/requests" class="cta-button">
         🔐 Đăng nhập để xem chi tiết & Gửi báo giá
       </a>
 
@@ -291,7 +296,9 @@ export const generatePartnerNotificationEmail = (
     <div class="footer">
       <p><strong>Hệ thống kết nối đào tạo ATLD</strong></p>
       <p>Email này được gửi tự động từ hệ thống</p>
-      <p>Nếu bạn không muốn nhận email thông báo, vui lòng cập nhật trong <a href="https://atld.web.app/settings">Cài đặt tài khoản</a></p>
+      <!-- /settings cũng là đường dẫn không tồn tại. Tuỳ chọn nhận email nằm
+           trong hồ sơ đối tác, sửa ở trang danh sách yêu cầu sau khi đăng nhập. -->
+      <p>Nếu bạn không muốn nhận email thông báo, vui lòng cập nhật trong <a href="https://antoan.web.app/requests">hồ sơ đối tác</a></p>
       <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="font-size: 12px; color: #94a3b8;">
           © ${new Date().getFullYear()} ATLD. All rights reserved.
@@ -529,6 +536,12 @@ export const generateQuoteNotificationEmail = (data: QuoteNotificationData): str
 
     <!-- Content -->
     <div class="content">
+      <!-- Lời chào. clientName vốn đã được truyền vào hàm này nhưng không dùng
+           ở đâu cả, nên email báo giá gửi tới khách mà không xưng tên họ. -->
+      <p style="font-size: 16px; color: #334155; margin: 0 0 20px;">
+        Kính gửi <strong>${escapeHtml(data.clientName)}</strong>,
+      </p>
+
       <!-- Quote Card -->
       <div class="quote-card">
         <div style="text-align: center; margin-bottom: 16px;">
@@ -542,7 +555,7 @@ export const generateQuoteNotificationEmail = (data: QuoteNotificationData): str
 
         <div style="text-align: center; padding: 16px 0; border-top: 1px solid #86efac; border-bottom: 1px solid #86efac; margin: 16px 0;">
           <div style="font-size: 14px; color: #15803d; margin-bottom: 4px;">⏱️ Thời gian thực hiện</div>
-          <div style="font-size: 18px; font-weight: 700; color: #16a34a;">${data.timeline}</div>
+          <div style="font-size: 18px; font-weight: 700; color: #16a34a;">${escapeHtml(data.timeline)}</div>
         </div>
       </div>
 
@@ -552,11 +565,11 @@ export const generateQuoteNotificationEmail = (data: QuoteNotificationData): str
         <div class="info-grid">
           <div class="info-item">
             <div class="label">Tên đơn vị:</div>
-            <div class="value">${data.partnerName}</div>
+            <div class="value">${escapeHtml(data.partnerName)}</div>
           </div>
           <div class="info-item">
             <div class="label">Email liên hệ:</div>
-            <div class="value"><a href="mailto:${data.partnerEmail}" style="color: #16a34a; text-decoration: none;">${data.partnerEmail}</a></div>
+            <div class="value"><a href="mailto:${escapeHtml(data.partnerEmail)}" style="color: #16a34a; text-decoration: none;">${escapeHtml(data.partnerEmail)}</a></div>
           </div>
         </div>
       </div>
@@ -567,7 +580,7 @@ export const generateQuoteNotificationEmail = (data: QuoteNotificationData): str
       <div class="section">
         <div class="section-title">📝 Chi tiết báo giá</div>
         <div class="notes-box">
-${data.notes}
+${escapeHtmlGiuXuongDong(data.notes)}
         </div>
       </div>
 
@@ -580,7 +593,7 @@ ${data.notes}
           .map(
             (detail) => `
           <div class="training-item">
-            <strong>${detail.type}</strong> - ${detail.participants} học viên (${detail.group})
+            <strong>${escapeHtml(detail.type)}</strong> - ${escapeHtml(detail.participants)} học viên (${escapeHtml(detail.group)})
           </div>
         `
           )
@@ -588,7 +601,7 @@ ${data.notes}
       </div>
 
       <!-- CTA Button -->
-      <a href="mailto:${data.partnerEmail}" class="cta-button">
+      <a href="mailto:${escapeHtml(data.partnerEmail)}" class="cta-button">
         📧 Liên hệ đơn vị đào tạo ngay
       </a>
 
@@ -615,7 +628,7 @@ ${data.notes}
     <div class="footer">
       <p><strong>SafetyConnect - Nền tảng kết nối đào tạo ATLD</strong></p>
       <p>Email này được gửi tự động từ hệ thống</p>
-      <p>Mọi thắc mắc vui lòng truy cập <a href="https://atld.web.app">atld.web.app</a></p>
+      <p>Mọi thắc mắc vui lòng truy cập <a href="https://antoan.web.app">antoan.web.app</a></p>
       <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
         <p style="font-size: 12px; color: #94a3b8;">
           © ${new Date().getFullYear()} SafetyConnect. All rights reserved.

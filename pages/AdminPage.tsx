@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { auth, type User } from '../services/firebaseConfig';
+import { AppContext } from '../App';
 import { useAdminData } from '../hooks/useAdminData';
 import { useAdminActions } from '../hooks/useAdminActions';
 import DashboardTab from '../components/admin/DashboardTab';
@@ -11,6 +12,7 @@ type AdminTab = 'dashboard' | 'blog' | 'seo';
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user, isAdmin, loadingAuth, onLoginRequired } = useContext(AppContext);
 
   const { partners, requests, loading, loadError } = useAdminData();
   const {
@@ -25,6 +27,52 @@ const AdminPage: React.FC = () => {
   useEffect(() => {
     setCurrentUser(auth.currentUser);
   }, []);
+
+  // Trang này TRƯỚC ĐÂY không kiểm quyền: ai gõ /admin cũng vào được và nhận
+  // câu lỗi kỹ thuật tiếng Anh "Missing or insufficient permissions".
+  // Dữ liệu không hề lộ — firestore.rules chặn đúng — nhưng người dùng không
+  // hiểu chuyện gì đang xảy ra, và toàn bộ khung quản trị vẫn phơi ra.
+  if (loadingAuth) {
+    return <div className="text-center p-10">Đang kiểm tra quyền truy cập...</div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="max-w-lg mx-auto bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
+            <i className="fas fa-lock text-2xl text-primary"></i>
+          </div>
+          <h1 className="text-xl font-bold text-neutral-dark mb-3">Khu vực quản trị</h1>
+          <p className="text-gray-600 mb-6">Anh/chị cần đăng nhập bằng tài khoản quản trị.</p>
+          <button
+            onClick={onLoginRequired}
+            className="bg-primary text-white font-semibold px-8 py-3 rounded-lg hover:bg-primary-dark transition-all inline-flex items-center gap-2"
+          >
+            <i className="fas fa-right-to-bracket"></i>
+            Đăng nhập
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="max-w-lg mx-auto bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-red-50 flex items-center justify-center">
+            <i className="fas fa-ban text-2xl text-red-500"></i>
+          </div>
+          <h1 className="text-xl font-bold text-neutral-dark mb-3">Không có quyền truy cập</h1>
+          <p className="text-gray-600">
+            Tài khoản này không phải quản trị viên. Nếu cần quyền quản trị, vui lòng liên hệ người
+            phụ trách hệ thống.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return <div className="text-center p-10">Đang tải dữ liệu...</div>;
   if (loadError) return <div className="text-center p-10 text-red-500">{loadError}</div>;

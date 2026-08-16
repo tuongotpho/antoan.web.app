@@ -86,30 +86,82 @@ npm run lint       # kiểm tra mã nguồn
 npm test           # chạy test
 ```
 
-## 🚀 Deploy
+## 🚀 Deploy — tự động toàn bộ
 
-### Hosting — tự động
+**Push lên nhánh `main` là xong.** GitHub Actions sẽ kiểm tra rồi deploy tất cả:
+hosting, `firestore.rules`, `storage.rules` và `functions/`. Xem tiến trình ở
+tab **Actions**.
 
-Push vào nhánh `main` là GitHub Actions tự build và deploy lên
-**antoan.web.app**. Xem tiến trình ở tab **Actions**.
+Workflow: [`.github/workflows/deploy-hosting.yml`](.github/workflows/deploy-hosting.yml)
 
-Workflow: [`.github/workflows/deploy-hosting.yml`](.github/workflows/deploy-hosting.yml).
-Nó chỉ deploy hosting target `main` (site `antoan`) — site `atld-connect`
-không bị ảnh hưởng.
+Không còn bước chạy tay nào. Trước đây rules và functions phải tự deploy, và vì
+lệnh chạy tay không ghi rõ project nên đã có lần nạp rules vào project khác với
+project app đang chạy — rules sửa xong mà không bao giờ có hiệu lực.
 
-Cần một secret trong GitHub → Settings → Secrets → Actions:
+### Workflow chạy gì
 
-| Secret | Lấy ở đâu |
+**Cửa kiểm tra** (hỏng ở đây thì không deploy):
+
+1. `npm run lint`
+2. `npx vitest run` (trừ test rules)
+3. `npm run test:rules` — kiểm `firestore.rules` trên Firestore emulator
+
+Bước 3 quan trọng vì rules nay được deploy tự động: một dòng rules sai có thể
+khoá sạch cả app, nên phải chặn từ trước.
+
+**Deploy** (chỉ chạy khi cửa kiểm tra đã qua):
+
+4. Build, gắn ký hiệu phiên bản theo ngày
+5. **Kiểm bản build có nối đúng project không** — nếu secret `VITE_FIREBASE_*`
+   trỏ nhầm nơi, workflow dừng ngay thay vì deploy một bản nối sai project
+6. Deploy `hosting:main`, `firestore:rules`, `storage`, `functions` trong một
+   lệnh, có ghi rõ `--project`
+
+### Đổi project Firebase
+
+Sửa ở **ba chỗ**, phải khớp nhau:
+
+| Chỗ | Vai trò |
 |---|---|
-| `FIREBASE_SERVICE_ACCOUNT` | Chạy `firebase init hosting:github`, hoặc Firebase Console → Project settings → Service accounts → Generate new private key (dán toàn bộ JSON) |
+| `PROJECT_ID` trong workflow | Nơi deploy tới |
+| `services/firebaseConfig.ts` | Nơi app kết nối tới (giá trị dự phòng) |
+| Secrets `VITE_FIREBASE_*` trên GitHub | Ghi đè giá trị dự phòng lúc build — **để trống thì dùng giá trị dự phòng** |
 
-### Functions, Rules, Storage — chạy tay
+Lệch nhau là app nối một nơi còn rules nạp một nơi khác.
 
-Workflow **không** deploy các phần này. Sau khi sửa `firestore.rules`,
-`storage.rules` hoặc thư mục `functions/`, chạy:
+### Secret cần có
+
+| Secret | Lấy ở đâu | Bắt buộc |
+|---|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase Console → Project settings → Service accounts → Generate new private key (dán toàn bộ JSON) | **Có** |
+| `VITE_FIREBASE_*` | Firebase Console → Project settings → General → Your apps | Không — bỏ trống thì dùng giá trị dự phòng trong mã |
+
+⚠️ **Quyền của khoá service account — kiểm trước lần push đầu tiên.**
+
+Khoá tạo bằng `firebase init hosting:github` chỉ được cấp quyền **hosting**.
+Từ nay workflow còn deploy rules và functions, nên nếu chưa cấp thêm quyền,
+lượt chạy sẽ đỏ ở bước deploy với lỗi kiểu `PERMISSION_DENIED` hoặc
+`Missing permissions`.
+
+Cấp thêm tại Google Cloud Console → IAM & Admin → IAM → tìm service account
+đang dùng → Edit → Add another role:
+
+| Vai trò | Để deploy |
+|---|---|
+| Firebase Hosting Admin | hosting |
+| Firebase Rules Admin | `firestore.rules`, `storage.rules` |
+| Cloud Functions Admin | `functions/` |
+| Service Account User | bắt buộc kèm theo khi deploy functions |
+| Cloud Build Editor + Artifact Registry Writer | quá trình đóng gói functions |
+
+Đây là loại việc bấm tay 5 phút trên Console nhưng chặn toàn bộ đường deploy —
+nếu Actions báo đỏ ngay lần đầu, gần như chắc chắn là do đây.
+
+### Chạy tay khi cần
 
 ```bash
-firebase deploy --only functions,firestore:rules,storage
+npm run test:rules   # kiểm rules trên emulator, không đụng máy chủ
+firebase deploy --only functions,firestore:rules,storage --project atld-connect
 ```
 
 ## 🏷️ Ký hiệu phiên bản
@@ -132,11 +184,16 @@ chạy bản nào, hay đang kẹt bản cũ trong cache.
 
 Không đặt khoá bí mật vào mã nguồn hay tài liệu — repo này công khai.
 
-| Bí mật | Nơi lưu đúng |
-|---|---|
-| Token Telegram bot | `firebase functions:config:set telegram.bot_token="..." telegram.chat_id="..."` |
-| `GEMINI_API_KEY` | Secret của Cloud Functions (`functions.runWith({ secrets: [...] })`) — **không** đưa vào bundle client |
-| Cấu hình Firebase phía client | `.env` (đã có trong `.gitignore`); các khoá `VITE_FIREBASE_*` này công khai theo thiết kế, không phải bí mật |
+| Bí mật | Nơi lưu đúng | Có phải bí mật thật không |
+|---|---|---|
+| Token Telegram bot | `firebase functions:config:set telegram.bot_token="..." telegram.chat_id="..."` | **Có** |
+| `GEMINI_API_KEY` | `firebase functions:secrets:set GEMINI_API_KEY` — chỉ máy chủ đọc, **không** đưa vào bundle client | **Có** |
+| `FIREBASE_SERVICE_ACCOUNT` | GitHub Secrets — chìa khoá để CI deploy | **Có, mạnh nhất** |
+| Cấu hình Firebase phía client | `.env` (đã gitignore), GitHub Secrets, hoặc giá trị dự phòng trong `services/firebaseConfig.ts` | **Không** — công khai theo thiết kế, rơ-le bảo vệ là `firestore.rules` |
+
+⚠️ Mọi biến bắt đầu bằng `VITE_` đều được đóng gói thẳng vào phần chạy trên
+trình duyệt — ai xem mã trang cũng đọc được. **Không bao giờ** đặt khoá Gemini
+hay token Telegram dưới tiền tố này.
 
 Việc gửi email đi qua callable function `sendAppEmail` (có kiểm tra đăng nhập).
 Client **không** ghi thẳng vào collection `mail` — rules đã khoá, vì mở ra đồng

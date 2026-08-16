@@ -54,6 +54,13 @@ dist-ssr
 .env.*
 !/.env.example
 
+# Bản sao dữ liệu xuất ra khi chuyển project Firebase — chỉ dùng tạm ở máy,
+# không đưa lên repo công khai.
+migration-backup/
+
+# File khoá tạm của công cụ, không thuộc về mã nguồn
+.claude/scheduled_tasks.lock
+
 # IDE directories and files
 .idea
 .vscode

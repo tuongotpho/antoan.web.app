@@ -12,6 +12,7 @@ const AllPartnersPage: React.FC = () => {
   const [partners, setPartners] = useState<TrustedPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [canDangNhap, setCanDangNhap] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<TrustedPartner | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>('all');
@@ -47,8 +48,20 @@ const AllPartnersPage: React.FC = () => {
         setLoading(false);
       },
       (err) => {
-        console.error('Error fetching trusted partners: ', err);
-        setError(`Không thể tải danh sách đối tác: ${err.message}`);
+        // permission-denied KHÔNG phải hỏng hóc mà là đúng thiết kế:
+        // firestore.rules yêu cầu đăng nhập mới đọc được bảng partners.
+        // Trước đây nhánh này ném thẳng câu lỗi kỹ thuật tiếng Anh
+        // "Missing or insufficient permissions" ra giữa một trang công khai.
+        if (err?.code === 'permission-denied') {
+          console.warn(
+            'Danh sách đối tác chỉ hiển thị cho người đã đăng nhập (theo firestore.rules).'
+          );
+          setCanDangNhap(true);
+          setLoading(false);
+          return;
+        }
+        console.error('Lỗi khi tải danh sách đối tác: ', err);
+        setError('Không tải được danh sách đối tác. Vui lòng thử lại sau ít phút.');
         setLoading(false);
       }
     );
@@ -86,12 +99,57 @@ const AllPartnersPage: React.FC = () => {
     );
   }
 
+  if (canDangNhap) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-lg w-full bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
+            <i className="fas fa-user-group text-2xl text-primary"></i>
+          </div>
+          <h1 className="text-xl font-bold text-neutral-dark mb-3">
+            Đăng nhập để xem danh sách đối tác
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Thông tin liên hệ của các đơn vị đào tạo chỉ hiển thị cho người dùng đã đăng nhập, để
+            tránh bị thu thập tự động.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => navigate('/')}
+              className="bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:bg-primary-dark transition-all inline-flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-house"></i>
+              Về trang chủ
+            </button>
+            <button
+              onClick={() => navigate('/requests')}
+              className="border border-gray-300 text-neutral-dark font-semibold px-6 py-3 rounded-lg hover:bg-gray-50 transition-all inline-flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-list"></i>
+              Xem yêu cầu huấn luyện
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-10 text-red-500">
-          <i className="fas fa-exclamation-circle text-5xl mb-4"></i>
-          <p>{error}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-lg w-full bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-red-50 flex items-center justify-center">
+            <i className="fas fa-triangle-exclamation text-2xl text-red-500"></i>
+          </div>
+          <h1 className="text-xl font-bold text-neutral-dark mb-3">Không tải được danh sách</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary text-white font-semibold px-6 py-3 rounded-lg hover:bg-primary-dark transition-all inline-flex items-center gap-2"
+          >
+            <i className="fas fa-rotate-right"></i>
+            Thử lại
+          </button>
         </div>
       </div>
     );

@@ -1,95 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Main Pages -->
   <url>
-    <loc>https://atld.web.app/</loc>
-    <lastmod>2025-01-15</lastmod>
+    <loc>https://antoan.web.app/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/requests</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://atld.web.app/blog</loc>
-    <lastmod>2025-01-15</lastmod>
+    <loc>https://antoan.web.app/blog</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/documents</loc>
-    <lastmod>2025-01-15</lastmod>
+    <loc>https://antoan.web.app/requests</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-08-16</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/documents</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/chat</loc>
-    <lastmod>2025-01-15</lastmod>
+    <loc>https://antoan.web.app/training/an-toan-dien</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
-  <!-- Training Landing Pages -->
   <url>
-    <loc>https://atld.web.app/training/an-toan-dien</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/an-toan-xay-dung</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/an-toan-xay-dung</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/an-toan-hoa-chat</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/an-toan-hoa-chat</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/pccc</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/pccc</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/an-toan-buc-xa</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/an-toan-buc-xa</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/quan-trac-moi-truong</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/quan-trac-moi-truong</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/danh-gia-phan-loai-lao-dong</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/danh-gia-phan-loai-lao-dong</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <loc>https://antoan.web.app/training/so-cap-cuu</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-08-16</lastmod>
   </url>
-
   <url>
-    <loc>https://atld.web.app/training/so-cap-cuu</loc>
-    <lastmod>2025-01-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://antoan.web.app/blog/huan-luyen-an-toan-lao-dong-cho-cong-ty-quan-ly-chung-cu-khu-do-thi-chia-khoa-bao-ve-nguoi-lao-dong-va-cu-dan</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2025-11-19</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/hoan-thien-he-thong-huan-luyen-atld-tai-nha-may-bot-my-tuan-thu-nghi-dinh-442016-va-622025-chuyen-sau-ve-an-toan-dien</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-20</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/huan-luyen-atvsld-chuyen-sau-cho-nha-may-duoc-pham-chia-khoa-tuan-thu-va-chat-luong-gmp</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-18</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/huan-luyen-an-toan-lao-dong-nd-44-va-nd-62-cho-nganh-may-go</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-02-14</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/chia-khoa-an-toan-huan-luyen-atvsld-chuyen-sau-cho-cong-nhan-nganh-in-bao-bi</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-20</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/an-toan-lao-dong-cho-nhan-vien-vien-thong-quy-dinh-tu-a-z</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-06-07</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/huan-luyen-an-toan-lao-dong-chuyen-sau-cho-cong-nhan-quan-ly-toa-nha-chung-cu</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-18</lastmod>
+  </url>
+  <url>
+    <loc>https://antoan.web.app/blog/huan-luyen-an-toan-lao-dong-cho-ban-quan-ly-toa-nha-lancaster</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-02-13</lastmod>
   </url>
 </urlset>

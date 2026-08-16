@@ -1,13 +1,12 @@
-# Tự động build và deploy lên Firebase Hosting site "antoan" (antoan.web.app)
-# mỗi khi có push vào nhánh main.
+# Push lên nhánh main là tự động kiểm tra rồi deploy TOÀN BỘ lên Firebase:
+# hosting, firestore rules, storage rules và cloud functions.
 #
-# CHỈ deploy target "main" — target "atld" (atld-connect.web.app) không đụng tới.
-#
-# Cần tạo trước 2 secret trong GitHub → Settings → Secrets and variables → Actions:
-#   FIREBASE_SERVICE_ACCOUNT  — nội dung JSON của service account (xem README-DEPLOY.md)
-#   VITE_FIREBASE_*           — các biến cấu hình Firebase phía client (nếu muốn
-#                               ghi đè giá trị mặc định trong mã nguồn)
-name: Deploy Hosting (antoan.web.app)
+# TRƯỚC ĐÂY workflow chỉ deploy hosting, còn rules và functions phải chạy tay.
+# Vì lệnh chạy tay không ghi rõ project nên nó lấy mặc định trong .firebaserc —
+# đã có lần nạp rules vào đúng project mặc định nhưng app lại chạy ở project
+# khác, rules sửa xong mà không bao giờ có hiệu lực. Nay mọi thứ đi cùng một
+# đường, và project được ghi rõ ở một chỗ duy nhất (biến PROJECT_ID bên dưới).
+name: Kiểm tra và deploy (antoan.web.app)
 
 on:
   push:
@@ -17,12 +16,63 @@ on:
 
 # Nếu push liên tiếp, huỷ lượt chạy cũ để không deploy chồng nhau
 concurrency:
-  group: deploy-hosting-antoan
+  group: deploy-antoan
   cancel-in-progress: true
 
+env:
+  # Project Firebase thật của app. Đổi project thì sửa DUY NHẤT ở đây,
+  # rồi sửa cho khớp trong services/firebaseConfig.ts và .firebaserc.
+  PROJECT_ID: atld-connect
+
 jobs:
-  build_and_deploy:
+  # ───────────────────────────────────────────────────────────────
+  # Cửa kiểm tra: hỏng ở đây thì KHÔNG deploy.
+  # ───────────────────────────────────────────────────────────────
+  kiem-tra:
+    name: Kiểm tra mã nguồn
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Firestore emulator chạy trên Java. Khai báo rõ để không phụ thuộc vào
+      # việc máy chạy CI tình cờ có sẵn bản Java nào.
+      - name: Cài Java (cho Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cài dependencies
+        run: npm ci
+
+      - name: Soát lỗi mã nguồn (lint)
+        run: npm run lint
+
+      - name: Chạy test
+        run: npx vitest run --exclude test/firestoreRules.test.ts
+
+      # Kiểm firestore.rules trên emulator TRƯỚC khi nạp lên máy chủ thật.
+      # Từ nay rules được deploy tự động, nên một dòng rules sai có thể khoá
+      # sạch cả app — bước này là chốt chặn cuối cùng.
+      - name: Kiểm firestore.rules trên emulator
+        run: npm run test:rules
+
+  # ───────────────────────────────────────────────────────────────
+  # Deploy: chỉ chạy khi cửa kiểm tra đã qua.
+  # ───────────────────────────────────────────────────────────────
+  deploy:
     name: Build và deploy
+    needs: kiem-tra
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -56,6 +106,10 @@ jobs:
       - name: Build
         env:
           APP_VERSION: ${{ steps.ver.outputs.app_version }}
+          # Các khoá này công khai theo thiết kế. Để trống secret cũng chạy được:
+          # mã sẽ dùng giá trị dự phòng trong services/firebaseConfig.ts.
+          # NHƯNG nếu đã đặt secret thì phải trỏ đúng project trong PROJECT_ID,
+          # nếu không bản build sẽ nối vào project khác với nơi nạp rules.
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -64,14 +118,43 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
         run: npm run build
 
-      - name: Deploy lên Firebase Hosting (site antoan)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: atld-connect
-          # Đây là TÊN TARGET trong .firebaserc, không phải tên site.
-          # .firebaserc khai: "main" -> site "antoan"; "atld" -> site "atld-connect".
-          # Dùng "main" nên chỉ antoan.web.app được deploy, atld-connect không đụng tới.
-          target: main
-          channelId: live
+      # Cảnh báo sớm nếu secret trỏ nhầm project: bản build sẽ nối vào một nơi,
+      # còn rules lại được nạp vào nơi khác — đúng cái bẫy đã mắc phải một lần.
+      - name: Kiểm bản build có nối đúng project không
+        run: |
+          if grep -rq "$PROJECT_ID" dist/assets/*.js; then
+            echo "✅ Bản build nối vào project $PROJECT_ID"
+          else
+            echo "::error::Bản build KHÔNG trỏ tới $PROJECT_ID. Kiểm lại các secret VITE_FIREBASE_* trong GitHub, hoặc giá trị dự phòng trong services/firebaseConfig.ts."
+            exit 1
+          fi
+
+      - name: Chuẩn bị khoá service account
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        # Ghi qua biến môi trường chứ không nhúng thẳng secret vào dòng lệnh,
+        # để nội dung khoá không lọt vào log hay bị shell diễn giải.
+        run: |
+          if [ -z "$SA_JSON" ]; then
+            echo "::error::Thiếu secret FIREBASE_SERVICE_ACCOUNT."
+            exit 1
+          fi
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+
+      - name: Deploy hosting, rules và functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        # Deploy tất cả trong MỘT lệnh, có ghi rõ --project để không bao giờ
+        # phụ thuộc vào project mặc định của .firebaserc nữa.
+        # Target "main" trỏ site "antoan"; site atld-connect không bị đụng tới.
+        run: |
+          npx firebase-tools@14 deploy \
+            --only hosting:main,firestore:rules,storage,functions \
+            --project "$PROJECT_ID" \
+            --non-interactive \
+            --force
+
+      - name: Xoá khoá service account
+        # Chạy cả khi bước trên hỏng, để khoá không nằm lại trên máy chạy CI.
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json"

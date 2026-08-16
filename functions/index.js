@@ -3,6 +3,10 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 const axios = require('axios');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const {
+  escapeTelegramHtml,
+  formatTrainingRequestMessage,
+} = require('./telegramFormat');
 
 initializeApp();
 const db = getFirestore();
@@ -21,6 +25,42 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || telegramConfig.bot_
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || telegramConfig.chat_id || '';
 
 /**
+ * Kiểm tra người gọi có phải admin không (đọc admins/{uid} bằng Admin SDK).
+ */
+async function assertAdmin(context) {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Cần đăng nhập');
+  }
+  const snap = await db.collection('admins').doc(context.auth.uid).get();
+  if (!snap.exists) {
+    throw new functions.https.HttpsError('permission-denied', 'Chỉ quản trị viên mới dùng được chức năng này');
+  }
+}
+
+/**
+ * Kiểm tra người gọi là admin HOẶC đối tác đã được duyệt.
+ *
+ * Dùng cho việc gửi email: tạo một tài khoản Google chỉ mất 10 giây, nên
+ * "đã đăng nhập" gần như tương đương "bất kỳ ai trên Internet".
+ */
+async function assertAdminOrApprovedPartner(context) {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Cần đăng nhập');
+  }
+  const uid = context.auth.uid;
+  const adminSnap = await db.collection('admins').doc(uid).get();
+  if (adminSnap.exists) return;
+
+  const partnerSnap = await db.collection('partners').doc(uid).get();
+  if (partnerSnap.exists && partnerSnap.data().status === 'approved') return;
+
+  throw new functions.https.HttpsError(
+    'permission-denied',
+    'Chỉ quản trị viên hoặc đối tác đã được duyệt mới gửi được email'
+  );
+}
+
+/**
  * Send message to Telegram
  */
 async function sendTelegramMessage(message) {
@@ -37,71 +77,6 @@ async function sendTelegramMessage(message) {
     console.error('Error sending Telegram notification:', error.message);
     throw error;
   }
-}
-
-/**
- * Format training request data for Telegram message
- */
-function formatTrainingRequestMessage(data) {
-  const {
-    trainingType,
-    companyName,
-    clientName,
-    email,
-    phone,
-    location,
-    numberOfTrainees,
-    expectedStartDate,
-    additionalInfo,
-    createdAt
-  } = data;
-
-  const trainingTypeMap = {
-    'an-toan-dien': '⚡ An toàn Điện',
-    'an-toan-xay-dung': '🏗️ An toàn Xây dựng',
-    'an-toan-hoa-chat': '🧪 An toàn Hóa chất',
-    'pccc': '🚒 Phòng Cháy Chữa Cháy',
-    'an-toan-buc-xa': '☢️ An toàn Bức xạ',
-    'quan-trac-moi-truong': '🌿 Quan trắc Môi trường',
-    'danh-gia-phan-loai-lao-dong': '📋 Đánh giá Phân loại Lao động',
-    'so-cap-cuu': '🏥 Sơ Cấp Cứu'
-  };
-
-  const trainingName = trainingTypeMap[trainingType] || trainingType || 'Không xác định';
-
-  // Handle both Firestore Timestamp and regular date
-  let date = 'N/A';
-  if (createdAt) {
-    if (createdAt.toDate) {
-      // Firestore Timestamp object
-      date = createdAt.toDate().toLocaleString('vi-VN');
-    } else if (createdAt.seconds) {
-      // Timestamp as object with seconds
-      date = new Date(createdAt.seconds * 1000).toLocaleString('vi-VN');
-    } else if (createdAt instanceof Date) {
-      // Regular Date object
-      date = createdAt.toLocaleString('vi-VN');
-    }
-  }
-
-  return `
-🔔 <b>YÊU CẦU ĐÀO TẠO MỚI</b>
-
-${trainingName}
-
-👤 <b>Người liên hệ:</b> ${clientName || 'Chưa cập nhật'}
-🏢 <b>Công ty:</b> ${companyName || 'Chưa cập nhật'}
-📧 <b>Email:</b> ${email || 'Chưa cập nhật'}
-📱 <b>Điện thoại:</b> ${phone || 'Chưa cập nhật'}
-📍 <b>Địa điểm:</b> ${location || 'Chưa cập nhật'}
-👥 <b>Số học viên:</b> ${numberOfTrainees || 'Chưa cập nhật'} người
-📅 <b>Dự kiến bắt đầu:</b> ${expectedStartDate || 'Chưa cập nhật'}
-${additionalInfo ? `\n💬 <b>Ghi chú:</b> ${additionalInfo}` : ''}
-
-⏰ <b>Thời gian:</b> ${date}
-
-🔗 <a href="https://antoan.web.app/admin">Xem chi tiết</a>
-  `.trim();
 }
 
 /**
@@ -137,9 +112,15 @@ exports.notifyNewTrainingRequest = functions.firestore
  * Email gửi đi. Nhờ vậy không còn ai gửi được email ẩn danh từ tên miền này.
  */
 exports.sendAppEmail = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Cần đăng nhập để gửi email');
-  }
+  // TRƯỚC ĐÂY chỉ kiểm "đã đăng nhập". Vì người gọi tự đặt người nhận, tiêu đề
+  // và toàn bộ nội dung HTML (tối đa 50 địa chỉ mỗi lần, không giới hạn số lần),
+  // bất kỳ ai lập một tài khoản Google cũng biến hệ thống thành máy gửi thư rác
+  // đứng tên miền này — hậu quả nặng nhất là tên miền bị đưa vào danh sách đen.
+  //
+  // Hai nơi gọi hợp lệ đều đã đăng nhập sẵn: đối tác gửi báo giá (QuoteForm) và
+  // admin duyệt/từ chối đối tác (useAdminActions), nên siết vào đúng hai vai này
+  // không làm vỡ tính năng nào.
+  await assertAdminOrApprovedPartner(context);
 
   const { to, subject, html, text } = data || {};
 
@@ -171,9 +152,9 @@ exports.sendAppEmail = functions.https.onCall(async (data, context) => {
  * Cloud Function V1: Test Telegram notification
  */
 exports.testTelegramNotification = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
+  // Chỉ admin: trước đây mọi tài khoản đã đăng nhập đều bơm được tin nhắn rác
+  // vào Telegram của chủ hệ thống, không giới hạn số lần.
+  await assertAdmin(context);
 
   const testMessage = `
 🧪 <b>TEST NOTIFICATION</b>
@@ -182,7 +163,7 @@ exports.testTelegramNotification = functions.https.onCall(async (data, context) 
 
 ✅ Bot đang hoạt động bình thường!
 
-👤 <b>Tested by:</b> ${context.auth.token.email || 'Unknown'}
+👤 <b>Tested by:</b> ${escapeTelegramHtml(context.auth.token.email) || 'Unknown'}
 
 ⏰ ${new Date().toLocaleString('vi-VN')}
   `.trim();
@@ -200,9 +181,9 @@ exports.testTelegramNotification = functions.https.onCall(async (data, context) 
  * Cloud Function V1: Generate blog post using Gemini AI
  */
 exports.generateBlogPost = functions.runWith({ secrets: ['GEMINI_API_KEY'] }).https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
+  // Chỉ admin: hàm này gọi Gemini bằng khoá của chủ hệ thống, nên mở cho mọi
+  // tài khoản đã đăng nhập đồng nghĩa với việc người lạ tiêu tiền AI của chủ.
+  await assertAdmin(context);
 
   const { topic, category, keywords } = data;
 
@@ -288,9 +269,8 @@ Trả về theo định dạng JSON với cấu trúc sau:
  * Cloud Function V1: AI Blog Helper - Improve existing content, generate title/excerpt/tags
  */
 exports.improveBlogContent = functions.runWith({ secrets: ['GEMINI_API_KEY'] }).https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated');
-  }
+  // Chỉ admin — cùng lý do với generateBlogPost: tiền gọi Gemini là của chủ.
+  await assertAdmin(context);
 
   const { action, content, context: blogContext } = data;
 

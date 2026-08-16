@@ -18,6 +18,7 @@ import {
   deleteObject,
 } from '../services/firebaseConfig';
 import { Document } from '../types';
+import SEOHead from '../components/SEOHead';
 import { AppContext } from '../App';
 
 const DocumentUploadForm: React.FC<{ onUploadSuccess: () => void }> = ({ onUploadSuccess }) => {
@@ -279,6 +280,19 @@ const DocumentsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
+      {/* Trang này nằm trong sitemap nhưng trước đây không có thẻ SEO riêng, nên
+          Google thấy tiêu đề và mô tả trùng hệt trang chủ. */}
+      <SEOHead
+        title="Tài Liệu & Biểu Mẫu An Toàn Lao Động | SafetyConnect"
+        description="Kho tài liệu, quy định pháp luật và biểu mẫu về an toàn lao động, tải miễn phí. Cập nhật theo Nghị định 44/2016/NĐ-CP và các văn bản hiện hành."
+        url="https://antoan.web.app/documents"
+        keywords={[
+          'tài liệu an toàn lao động',
+          'biểu mẫu an toàn lao động',
+          'nghị định 44 an toàn lao động',
+          'quy định an toàn lao động',
+        ]}
+      />
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-neutral-dark mb-2">
           Tài Liệu & Biểu Mẫu

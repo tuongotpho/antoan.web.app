@@ -141,9 +141,26 @@ service cloud.firestore {
                     (get(/databases/$(database)/documents/chatRooms/$(request.resource.data.roomId)).data.clientId == request.auth.uid ||
                      get(/databases/$(database)/documents/chatRooms/$(request.resource.data.roomId)).data.partnerId == request.auth.uid);
 
-      // Only message sender or admin can update
+      // Người gửi và admin sửa được tin nhắn của mình.
+      //
+      // NGOÀI RA người NHẬN phải đánh dấu được "đã đọc" — trước đây điều kiện
+      // chỉ có senderId nên chính người nhận lại không có quyền đặt read = true.
+      // Kết quả: ChatWindow gọi updateDoc mỗi lần mở phòng chat và luôn bị từ
+      // chối, tính năng "đã đọc" cùng bộ đếm tin chưa đọc hỏng âm thầm.
+      //
+      // Nhánh thêm vào bị khoá chặt: chỉ được đổi đúng một trường `read`, và
+      // chỉ dành cho người thuộc phòng chat đó.
       allow update: if isAuthenticated() && (
-        resource.data.senderId == request.auth.uid || isAdmin()
+        resource.data.senderId == request.auth.uid
+        || isAdmin()
+        || (
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+             && exists(/databases/$(database)/documents/chatRooms/$(resource.data.roomId))
+             && (
+                  get(/databases/$(database)/documents/chatRooms/$(resource.data.roomId)).data.clientId == request.auth.uid
+                  || get(/databases/$(database)/documents/chatRooms/$(resource.data.roomId)).data.partnerId == request.auth.uid
+                )
+           )
       );
 
       // Only admin can delete messages

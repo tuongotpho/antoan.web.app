@@ -97,9 +97,15 @@ const TrainingRequestForm: React.FC = () => {
         setError('Vui lòng điền đầy đủ loại hình và số lượng cho tất cả các nội dung huấn luyện.');
         return;
       }
-      const participantsNum = parseInt(detail.participants);
+      const participantsNum = parseInt(detail.participants, 10);
       if (isNaN(participantsNum) || participantsNum <= 0) {
         setError('Số lượng học viên phải là một số dương.');
+        return;
+      }
+      // Chặn trên: trước đây nhập bao nhiêu cũng được, nên một con số gõ nhầm
+      // (hoặc cố tình) vẫn vào thẳng cơ sở dữ liệu và bắn thông báo cho admin.
+      if (participantsNum > 10000) {
+        setError('Số lượng học viên quá lớn. Vui lòng liên hệ trực tiếp qua hotline để được hỗ trợ.');
         return;
       }
       processedDetails.push({
@@ -349,7 +355,7 @@ const TrainingRequestForm: React.FC = () => {
           />
           <textarea
             name="description"
-            placeholder="Mô tả chi tiết yêu cầu khác (ví dụ: yêu cầu giảng viên Lê Thanh aka August87, chứng chỉ...)"
+            placeholder="Mô tả chi tiết yêu cầu khác (ví dụ: huấn luyện ngoài giờ hành chính, cấp chứng chỉ sau khoá, đào tạo tại nhà máy...)"
             value={formData.description}
             onChange={handleChange}
             rows={4}

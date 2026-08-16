@@ -78,13 +78,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ room, currentUser, userRole, us
       setMessages(messagesData);
       setLoading(false);
 
-      // Mark messages as read
-      messagesData.forEach(async (msg) => {
-        if (msg.senderId !== currentUser.uid && !msg.read) {
-          const msgRef = doc(db, 'chatMessages', msg.id);
-          await updateDoc(msgRef, { read: true });
-        }
-      });
+      // Đánh dấu các tin nhắn của người kia là đã đọc.
+      //
+      // TRƯỚC ĐÂY dùng forEach với callback async: mỗi lần gọi updateDoc tạo ra
+      // một promise không ai chờ và không ai bắt lỗi, nên khi Firestore từ chối
+      // (chuyện vẫn xảy ra trước lúc rules được sửa) thì lỗi rơi thẳng ra ngoài
+      // dưới dạng unhandled rejection, không chỗ nào xử lý.
+      const canDanhDauDaDoc = messagesData.filter(
+        (msg) => msg.senderId !== currentUser.uid && !msg.read
+      );
+
+      if (canDanhDauDaDoc.length > 0) {
+        Promise.allSettled(
+          canDanhDauDaDoc.map((msg) => updateDoc(doc(db, 'chatMessages', msg.id), { read: true }))
+        ).then((ketQua) => {
+          const soLoi = ketQua.filter((r) => r.status === 'rejected').length;
+          if (soLoi > 0) {
+            console.warn(
+              `Không đánh dấu được ${soLoi}/${canDanhDauDaDoc.length} tin nhắn là đã đọc.`
+            );
+          }
+        });
+      }
 
       // Scroll to bottom
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);

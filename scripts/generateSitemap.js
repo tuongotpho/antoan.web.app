@@ -14,28 +14,46 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Firebase config - same as your app
+// Cấu hình Firebase — phải khớp với services/firebaseConfig.ts.
+// Trước đây file này trỏ sang project khác và tên miền khác, nên sitemap sinh ra
+// hoàn toàn không dùng được.
 const firebaseConfig = {
-  apiKey: 'AIzaSyBiJGS0vd5xwHFPmNbE4YVwxZc5HsQ-xOM',
-  authDomain: 'atld.firebaseapp.com',
-  projectId: 'gen-lang-client-0113063590',
-  storageBucket: 'gen-lang-client-0113063590.firebasestorage.app',
-  messagingSenderId: '951042361899',
-  appId: '1:951042361899:web:3f7d3f8bb7cf3cbe80fea3',
+  apiKey: process.env.VITE_FIREBASE_API_KEY || 'AIzaSyCFRcMNj_vOOqOaJlGbLbGF6Z1HpawGyDg',
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || 'atld-connect.firebaseapp.com',
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'atld-connect',
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || 'atld-connect.firebasestorage.app',
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '745800129021',
+  appId: process.env.VITE_FIREBASE_APP_ID || '1:745800129021:web:8b37c115c4327930dc6194',
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const BASE_URL = 'https://atld.web.app';
+// Tên miền thật của trang. Trước đây ghi 'https://atld.web.app' — sai tên miền,
+// nghĩa là mọi địa chỉ trong sitemap đều chỉ Google sang một trang khác.
+const BASE_URL = 'https://antoan.web.app';
 
-// Static pages
+// Các trang tĩnh — phải khớp với router.tsx. Trước đây liệt kê /training,
+// /about, /contact: cả ba đều KHÔNG tồn tại trong router, nên Google truy vào
+// sẽ bị đá về trang chủ (Google gọi đây là "404 giả" và đánh giá thấp).
 const staticPages = [
   { url: '/', changefreq: 'daily', priority: '1.0' },
   { url: '/blog', changefreq: 'daily', priority: '0.9' },
-  { url: '/training', changefreq: 'weekly', priority: '0.9' },
-  { url: '/about', changefreq: 'monthly', priority: '0.7' },
-  { url: '/contact', changefreq: 'monthly', priority: '0.7' },
+  { url: '/requests', changefreq: 'daily', priority: '0.8' },
+  { url: '/documents', changefreq: 'weekly', priority: '0.8' },
+  // KHÔNG đưa /partners và /requests-chi-tiết vào đây: firestore.rules yêu cầu
+  // đăng nhập mới xem được danh sách đối tác, nên Googlebot (luôn ở trạng thái
+  // chưa đăng nhập) chỉ thấy màn hình mời đăng nhập. Đưa vào sitemap là tự mời
+  // Google index một trang trống. Khi nào mở cho khách xem được thì thêm lại.
+  // 8 trang giới thiệu lĩnh vực huấn luyện — khớp CoursesSection.tsx
+  { url: '/training/an-toan-dien', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/an-toan-xay-dung', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/an-toan-hoa-chat', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/pccc', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/an-toan-buc-xa', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/quan-trac-moi-truong', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/danh-gia-phan-loai-lao-dong', changefreq: 'weekly', priority: '0.9' },
+  { url: '/training/so-cap-cuu', changefreq: 'weekly', priority: '0.9' },
 ];
 
 async function generateSitemap() {
@@ -71,8 +89,13 @@ async function generateSitemap() {
         post.createdAt?.toDate() ||
         new Date();
 
+      // Ưu tiên slug: địa chỉ có chữ dễ đọc tốt cho SEO hơn chuỗi id ngẫu
+      // nhiên. BlogDetailPage tra theo slug trước, không có mới tra theo id —
+      // nên cả hai đều mở được, nhưng slug là địa chỉ nên đưa cho Google.
+      const duongDan = post.slug || doc.id;
+
       xml += '  <url>\n';
-      xml += `    <loc>${BASE_URL}/blog/${doc.id}</loc>\n`;
+      xml += `    <loc>${BASE_URL}/blog/${duongDan}</loc>\n`;
       xml += `    <changefreq>weekly</changefreq>\n`;
       xml += `    <priority>0.8</priority>\n`;
       xml += `    <lastmod>${lastmod.toISOString().split('T')[0]}</lastmod>\n`;
@@ -102,8 +125,14 @@ async function generateSitemap() {
 
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error generating sitemap:', error);
-    process.exit(1);
+    // KHÔNG chặn build. Script này chạy nối sau `vite build`, nên nếu để nó
+    // thoát với mã lỗi thì một trục trặc mạng hay quyền đọc cũng đủ làm CI đỏ
+    // và chặn cả bản deploy — trong khi hậu quả thật chỉ là sitemap cũ đi một
+    // nhịp (bản trong public/ vẫn được dùng).
+    console.error('⚠️  Không sinh được sitemap:', error?.message || error);
+    console.error('   Bản build vẫn tiếp tục, dùng public/sitemap.xml hiện có.');
+    console.error('   Chạy lại riêng bằng: npm run sitemap');
+    process.exit(0);
   }
 }
 
