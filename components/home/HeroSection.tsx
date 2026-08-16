@@ -1,11 +1,12 @@
 import React from 'react';
+import { cuonToiId } from '../../utils/cuonTrang';
 import { useNavigate } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
     const navigate = useNavigate();
 
     const scrollToForm = () => {
-        document.getElementById('create-request-form')?.scrollIntoView({ behavior: 'smooth' });
+        cuonToiId('create-request-form');
     };
 
     return (

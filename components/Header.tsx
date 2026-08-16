@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, signOut, type User } from '../services/firebaseConfig';
+import { cuonToiId } from '../utils/cuonTrang';
 import { PartnerStatus } from '../App';
 
 interface HeaderProps {
@@ -66,17 +67,35 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleCreateRequestClick = () => {
-    const scrollToForm = () => {
-      document.getElementById('create-request-form')?.scrollIntoView({ behavior: 'smooth' });
+    if (currentPage === 'home') {
+      cuonToiId('create-request-form');
+      return;
+    }
+
+    navigate('/');
+
+    // Chờ cho tới khi form thật sự có mặt rồi mới cuộn.
+    //
+    // TRƯỚC ĐÂY dùng setTimeout(cuonToiForm, 100). Mã trang chủ được nạp theo
+    // kiểu chia nhỏ, nên lần đầu vào phải tải mảnh mã từ mạng — thường lâu hơn
+    // 100ms nhiều, nhất là trên 3G ở công trường. Hết 100ms mà form chưa dựng
+    // xong thì lệnh cuộn rơi vào hư không: người dùng về tới trang chủ nhưng
+    // vẫn ở trên đầu trang, phải tự mò xuống tìm form.
+    //
+    // Đây lại là nút kêu gọi hành động chính của cả website.
+    const HET_HAN = 5000;
+    const NHIP = 100;
+    const batDau = Date.now();
+
+    const thu = () => {
+      if (cuonToiId('create-request-form')) return;
+      if (Date.now() - batDau < HET_HAN) {
+        setTimeout(thu, NHIP);
+      }
+      // Quá hạn thì thôi, không cuộn — vẫn hơn là nhảy lung tung.
     };
 
-    if (currentPage === 'home') {
-      scrollToForm();
-    } else {
-      navigate('/');
-      // Wait for the home page to render before scrolling
-      setTimeout(scrollToForm, 100);
-    }
+    setTimeout(thu, NHIP);
   };
 
   const closeMobileMenu = () => setMobileMenuOpen(false);

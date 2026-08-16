@@ -7,6 +7,7 @@ import TrustedPartnerCard from '../components/TrustedPartnerCard';
 import TrustedPartnerInfoModal from '../components/TrustedPartnerInfoModal';
 import SEOHead from '../components/SEOHead';
 import { AppContext } from '../App';
+import { cuonLenDau } from '../utils/cuonTrang';
 
 const AllPartnersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -340,7 +341,7 @@ const AllPartnersPage: React.FC = () => {
           onClose={() => setSelectedPartner(null)}
           onViewAllPartners={() => {
             setSelectedPartner(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            cuonLenDau();
           }}
         />
       )}

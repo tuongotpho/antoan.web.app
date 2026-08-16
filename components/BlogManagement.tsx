@@ -21,6 +21,7 @@ import { BlogPost } from '../types';
 import LoadingSpinner from './LoadingSpinner';
 import AIBlogWriter from './AIBlogWriter';
 import { lamSachTenFile } from '../utils/fileUpload';
+import { cuonToiId } from '../utils/cuonTrang';
 
 interface BlogManagementProps {
   user: User;
@@ -106,7 +107,7 @@ const BlogManagement: React.FC<BlogManagementProps> = ({ user }) => {
 
     // Scroll to form
     setTimeout(() => {
-      document.getElementById('blog-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      cuonToiId('blog-form');
     }, 100);
   };
 

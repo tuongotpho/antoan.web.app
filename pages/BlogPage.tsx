@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { cuonLenDau } from '../utils/cuonTrang';
 import { useNavigate } from 'react-router-dom';
 import {
   db,
@@ -85,7 +86,7 @@ const BlogPage: React.FC = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    cuonLenDau();
   };
 
   if (loading) {

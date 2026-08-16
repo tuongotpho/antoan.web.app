@@ -17,6 +17,7 @@ import {
 import { ChatMessage, ChatRoom, TrainingRequest } from '../types';
 import LoadingSpinner from './LoadingSpinner';
 import { uploadFile, validateFile, getFileType, formatFileSize } from '../utils/fileUpload';
+import { cuonToi } from '../utils/cuonTrang';
 
 interface ChatWindowProps {
   room: ChatRoom;
@@ -102,7 +103,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ room, currentUser, userRole, us
       }
 
       // Scroll to bottom
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      setTimeout(() => cuonToi(messagesEndRef.current, 'end'), 100);
     });
 
     return () => unsubscribe();
