@@ -4,6 +4,7 @@ import { TrainingRequest } from '../types';
 import TrainingRequestList from '../components/TrainingRequestList';
 import AdvancedSearchFilter, { FilterState } from '../components/AdvancedSearchFilter';
 import SEOHead from '../components/SEOHead';
+import { khopTuKhoa, lotQuaLocSoHocVien } from '../utils/locYeuCau';
 import { AppContext } from '../App';
 import { getOrCreateAdminPartnerChatRoom } from '../utils/chatHelpers';
 
@@ -65,16 +66,7 @@ const RequestsPage: React.FC = () => {
 
     // 1. Filtering by search query
     if (searchQuery.trim()) {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      processedRequests = processedRequests.filter((req) => {
-        const locationMatch = req.location.toLowerCase().includes(lowercasedQuery);
-        const descriptionMatch = req.description.toLowerCase().includes(lowercasedQuery);
-        const typesMatch =
-          req.trainingDetails?.some((detail) =>
-            detail.type.toLowerCase().includes(lowercasedQuery)
-          ) || false;
-        return locationMatch || descriptionMatch || typesMatch;
-      });
+      processedRequests = processedRequests.filter((req) => khopTuKhoa(req, searchQuery));
     }
 
     // 2. Advanced Filters
@@ -92,15 +84,11 @@ const RequestsPage: React.FC = () => {
       );
     }
 
-    // Filter by participants count
-    processedRequests = processedRequests.filter((req) => {
-      const totalParticipants =
-        req.trainingDetails?.reduce((sum, d) => sum + d.participants, 0) || 0;
-      return (
-        totalParticipants >= advancedFilters.participantsMin &&
-        totalParticipants <= advancedFilters.participantsMax
-      );
-    });
+    // Lọc theo số học viên. Quy tắc nằm trong utils/locYeuCau.ts để test được:
+    // mức 1000 của thanh trượt mang nghĩa "không giới hạn", không phải trần cứng.
+    processedRequests = processedRequests.filter((req) =>
+      lotQuaLocSoHocVien(req, advancedFilters.participantsMin, advancedFilters.participantsMax)
+    );
 
     // Filter by urgent status
     if (advancedFilters.urgent) {
