@@ -2,7 +2,9 @@ import React, { useState, useRef } from 'react';
 import { db, doc, updateDoc, arrayUnion, type User } from '../services/firebaseConfig';
 import { TrainingRequest } from '../types';
 import { PartnerStatus } from '../App';
-import html2canvas from 'html2canvas-pro';
+// html2canvas-pro KHÔNG khai báo ở đây: nó được nạp ngay lúc bấm nút chụp ảnh
+// (xem handleExportImage). Để ở đây thì mọi người mở trang đều tải 258 KB dù
+// hầu như không ai dùng tới.
 import QuoteForm from './QuoteForm';
 
 interface TrainingRequestCardProps {
@@ -104,6 +106,14 @@ const TrainingRequestCard: React.FC<TrainingRequestCardProps> = ({
     if (!cardRef.current || isExporting) return;
     setIsExporting(true);
     try {
+      // Nạp thư viện chụp ảnh NGAY LÚC BẤM, không nạp sẵn từ đầu.
+      //
+      // Trước đây nó được khai báo ở đầu file, nên mọi người mở trang danh sách
+      // yêu cầu đều phải tải về 258 KB (66 KB sau khi nén) — kể cả tuyệt đại đa
+      // số không bao giờ bấm nút chụp ảnh. Đây là mảnh mã nặng nhất của cả
+      // trang, nặng gấp nhiều lần chính trang danh sách.
+      const { default: html2canvas } = await import('html2canvas-pro');
+
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
         backgroundColor: '#ffffff', // Explicitly set a white background
