@@ -1,23 +1,24 @@
-/* eslint-disable react-refresh/only-export-components --
-   File này chỉ khai báo bảng định tuyến, không phải nơi định nghĩa component.
-   Mỗi dòng `lazy(() => import(...))` đều bị quy tắc hot-reload của React đếm là
-   một component xuất khẩu sai chỗ, sinh ra 10 cảnh báo nhiễu che mất những cảnh
-   báo thật. Tách chúng ra file khác không làm mã tốt lên, chỉ để chiều quy tắc. */
-import React, { lazy } from 'react';
+import React from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
+import { lazyCoTaiLai } from './utils/lazyCoTaiLai';
 
-// Lazy load pages for better performance
-const HomePage = lazy(() => import('./pages/HomePage'));
-const RequestsPage = lazy(() => import('./pages/RequestsPage'));
-const BlogPage = lazy(() => import('./pages/BlogPage'));
-const BlogDetailPage = lazy(() => import('./pages/BlogDetailPage'));
-const DocumentsPage = lazy(() => import('./pages/DocumentsPage'));
-const ChatPage = lazy(() => import('./pages/ChatPage'));
-const AdminPage = lazy(() => import('./pages/AdminPage'));
-const TrainingLandingPage = lazy(() => import('./pages/TrainingLandingPage'));
-const AllPartnersPage = lazy(() => import('./pages/AllPartnersPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+// Mã mỗi trang được tải riêng khi cần, cho trang chủ nhẹ hơn.
+//
+// Dùng lazyCoTaiLai thay cho React.lazy: sau mỗi lần deploy, tên các mảnh mã
+// đổi theo nội dung, nên ai đang mở trang từ trước sẽ đi tìm một file không
+// còn tồn tại và nhận lỗi "Failed to fetch dynamically imported module".
+// lazyCoTaiLai bắt đúng lỗi đó rồi tải lại trang một lần để lấy tên mảnh mới.
+const HomePage = lazyCoTaiLai(() => import('./pages/HomePage'));
+const RequestsPage = lazyCoTaiLai(() => import('./pages/RequestsPage'));
+const BlogPage = lazyCoTaiLai(() => import('./pages/BlogPage'));
+const BlogDetailPage = lazyCoTaiLai(() => import('./pages/BlogDetailPage'));
+const DocumentsPage = lazyCoTaiLai(() => import('./pages/DocumentsPage'));
+const ChatPage = lazyCoTaiLai(() => import('./pages/ChatPage'));
+const AdminPage = lazyCoTaiLai(() => import('./pages/AdminPage'));
+const TrainingLandingPage = lazyCoTaiLai(() => import('./pages/TrainingLandingPage'));
+const AllPartnersPage = lazyCoTaiLai(() => import('./pages/AllPartnersPage'));
+const NotFoundPage = lazyCoTaiLai(() => import('./pages/NotFoundPage'));
 
 export const router = createBrowserRouter([
   {
