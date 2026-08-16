@@ -98,14 +98,14 @@ const SitemapGenerator: React.FC = () => {
 
       setResult({
         success: true,
-        message: `Sitemap generated successfully! ${staticPages.length} static pages + ${blogSnapshot.size} blog posts = ${staticPages.length + blogSnapshot.size} total URLs.`,
+        message: `Đã tạo xong sơ đồ trang: ${staticPages.length} trang cố định + ${blogSnapshot.size} bài viết = ${staticPages.length + blogSnapshot.size} địa chỉ.`,
         url: `${BASE_URL}/sitemap.xml`,
       });
     } catch (error: any) {
       console.error('Error generating sitemap:', error);
       setResult({
         success: false,
-        message: `Error: ${error.message}`,
+        message: `Không tạo được sơ đồ trang. Chi tiết: ${error.message}`,
       });
     } finally {
       setGenerating(false);
@@ -119,25 +119,32 @@ const SitemapGenerator: React.FC = () => {
           <i className="fas fa-sitemap text-white text-xl"></i>
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">Sitemap Generator</h3>
-          <p className="text-sm text-gray-600">Generate sitemap.xml for SEO</p>
+          <h3 className="text-xl font-bold text-gray-800">Tạo sơ đồ trang</h3>
+          <p className="text-sm text-gray-600">Sinh file sitemap.xml để Google tìm ra các trang</p>
         </div>
       </div>
 
+      {/* Toàn bộ mục này trước đây viết bằng tiếng Anh, trong khi cả trang dùng
+          tiếng Việt — mà người dùng nó lại chính là chủ trang. */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <div className="flex gap-3">
           <i className="fas fa-info-circle text-blue-500 mt-1"></i>
           <div className="text-sm text-gray-700 space-y-1">
-            <p className="font-semibold">What is sitemap.xml?</p>
+            <p className="font-semibold">Sơ đồ trang dùng để làm gì?</p>
             <p>
-              Sitemap helps search engines like Google discover and index all pages on your website,
-              improving SEO rankings.
+              Đây là một file liệt kê mọi địa chỉ trên website, gửi cho Google để họ biết đường vào
+              từng trang. Không có nó, nhiều trang có thể không bao giờ xuất hiện trong kết quả tìm
+              kiếm.
             </p>
             <ul className="list-disc list-inside space-y-1 text-xs mt-2">
-              <li>Static pages (Home, Blog, Training, etc.)</li>
-              <li>All published blog posts with updated dates</li>
-              <li>Priority and change frequency for each URL</li>
+              <li>Các trang cố định: trang chủ, blog, tài liệu, 8 lĩnh vực huấn luyện</li>
+              <li>Toàn bộ bài viết đã đăng, kèm ngày cập nhật</li>
+              <li>Mức ưu tiên và tần suất thay đổi của từng địa chỉ</li>
             </ul>
+            <p className="text-xs mt-2 text-gray-600">
+              Lưu ý: sơ đồ trang đã được sinh tự động mỗi lần deploy. Nút dưới đây chỉ cần dùng khi
+              anh/chị muốn tạo và tải file ra ngoài.
+            </p>
           </div>
         </div>
       </div>
@@ -150,12 +157,12 @@ const SitemapGenerator: React.FC = () => {
         {generating ? (
           <>
             <i className="fas fa-spinner fa-spin"></i>
-            <span>Generating sitemap...</span>
+            <span>Đang tạo sơ đồ trang...</span>
           </>
         ) : (
           <>
             <i className="fas fa-download"></i>
-            <span>Generate & Download Sitemap</span>
+            <span>Tạo và tải sơ đồ trang</span>
           </>
         )}
       </button>
@@ -176,12 +183,12 @@ const SitemapGenerator: React.FC = () => {
               <p className="text-sm">{result.message}</p>
               {result.success && (
                 <div className="mt-3 space-y-2">
-                  <p className="text-xs font-semibold">Next steps:</p>
+                  <p className="text-xs font-semibold">Việc cần làm tiếp:</p>
                   <ol className="text-xs list-decimal list-inside space-y-1">
-                    <li>Upload the downloaded sitemap.xml to your /public folder</li>
-                    <li>Deploy your website</li>
-                    <li>Submit {result.url} to Google Search Console</li>
-                    <li>Submit to Bing Webmaster Tools</li>
+                    <li>Chép file vừa tải vào thư mục <code>public/</code> của dự án</li>
+                    <li>Đẩy mã lên git — phần deploy sẽ tự chạy</li>
+                    <li>Khai báo địa chỉ {result.url} với Google Search Console</li>
+                    <li>Khai báo tương tự với Bing Webmaster Tools</li>
                   </ol>
                 </div>
               )}
@@ -191,7 +198,7 @@ const SitemapGenerator: React.FC = () => {
       )}
 
       <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 className="font-semibold text-gray-800 mb-2 text-sm">Submit to Search Engines:</h4>
+        <h4 className="font-semibold text-gray-800 mb-2 text-sm">Nơi khai báo sơ đồ trang:</h4>
         <div className="space-y-2 text-xs">
           <div>
             <strong>Google Search Console:</strong>
