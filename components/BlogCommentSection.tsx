@@ -119,7 +119,18 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
             maxHeight: 1080,
             quality: 0.8,
           });
-          const compressedFile = new File([compressedBlob], file.name, { type: file.type });
+          // Lấy kiểu THẬT của ảnh sau khi nén, không lấy kiểu của ảnh gốc.
+          //
+          // Hàm nén chuyển PNG sang JPEG (vì PNG bỏ qua mức chất lượng nên
+          // không nén được). Nếu vẫn gán kiểu cũ thì file JPEG bị dán nhãn PNG:
+          // Storage lưu sai loại nội dung, và trình duyệt của người xem có thể
+          // từ chối hiển thị.
+          const kieuThat = compressedBlob.type || file.type;
+          const tenFile =
+            kieuThat === 'image/jpeg' && /\.png$/i.test(file.name)
+              ? file.name.replace(/\.png$/i, '.jpg')
+              : file.name;
+          const compressedFile = new File([compressedBlob], tenFile, { type: kieuThat });
           const compressedSize = compressedFile.size;
 
           // Chỉ báo khi nén không ăn thua (ảnh sau nén vẫn gần bằng ảnh gốc),
