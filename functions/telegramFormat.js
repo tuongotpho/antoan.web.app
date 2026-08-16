@@ -41,63 +41,108 @@ const TRAINING_TYPE_MAP = {
  * Nhận cả Firestore Timestamp, object có .seconds, hoặc Date thường.
  */
 function formatCreatedAt(createdAt) {
+  let d = null;
   if (!createdAt) return 'N/A';
-  if (typeof createdAt.toDate === 'function') {
-    return createdAt.toDate().toLocaleString('vi-VN');
+  if (typeof createdAt.toDate === 'function') d = createdAt.toDate();
+  else if (createdAt.seconds) d = new Date(createdAt.seconds * 1000);
+  else if (createdAt instanceof Date) d = createdAt;
+  if (!d) return 'N/A';
+
+  // Ép múi giờ Việt Nam: Cloud Functions chạy giờ UTC nên nếu để mặc định thì
+  // yêu cầu gửi lúc tối ở Việt Nam sẽ hiện sang ngày hôm trước.
+  return d.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
+/**
+ * Gộp danh sách nội dung huấn luyện thành các dòng dễ đọc,
+ * kèm tổng số học viên.
+ */
+function formatTrainingDetails(trainingDetails) {
+  if (!Array.isArray(trainingDetails) || trainingDetails.length === 0) {
+    return { dong: '', tongHocVien: 0 };
   }
-  if (createdAt.seconds) {
-    return new Date(createdAt.seconds * 1000).toLocaleString('vi-VN');
-  }
-  if (createdAt instanceof Date) {
-    return createdAt.toLocaleString('vi-VN');
-  }
-  return 'N/A';
+
+  const e = escapeTelegramHtml;
+  let tong = 0;
+  const dong = trainingDetails
+    .map((ct) => {
+      const soLuong = Number(ct?.participants) || 0;
+      tong += soLuong;
+      const ten = TRAINING_TYPE_MAP[ct?.type] || ct?.type || 'Không xác định';
+      const nhom = ct?.group && ct.group !== 'Không áp dụng' ? ` · ${e(ct.group)}` : '';
+      return `   • ${e(ten)}${nhom} — <b>${soLuong}</b> học viên`;
+    })
+    .join('\n');
+
+  return { dong, tongHocVien: tong };
 }
 
 /**
  * Dựng nội dung tin nhắn báo yêu cầu đào tạo mới.
+ *
+ * QUAN TRỌNG — tên trường phải khớp với TrainingRequestForm.tsx:
+ *   clientName · clientEmail · clientPhone · location · description
+ *   trainingDuration · preferredTime · trainingDetails[] · urgent
+ *
+ * Bản trước đọc nhầm sang tên của một phiên bản form cũ (email, phone,
+ * additionalInfo, expectedStartDate, numberOfTrainees, trainingType,
+ * companyName) — chỉ 3 trên 10 trường là khớp, nên tin nhắn gửi đi hầu hết
+ * là "Chưa cập nhật" dù khách đã điền đầy đủ.
+ *
  * Mọi giá trị do người dùng nhập đều đi qua escapeTelegramHtml.
  */
 function formatTrainingRequestMessage(data) {
   const {
-    trainingType,
-    companyName,
     clientName,
-    email,
-    phone,
+    clientEmail,
+    clientPhone,
     location,
-    numberOfTrainees,
-    expectedStartDate,
-    additionalInfo,
+    description,
+    trainingDuration,
+    preferredTime,
+    trainingDetails,
+    urgent,
     createdAt,
   } = data || {};
 
-  const trainingName = TRAINING_TYPE_MAP[trainingType] || trainingType || 'Không xác định';
-  const date = formatCreatedAt(createdAt);
   const e = escapeTelegramHtml;
+  const { dong: dongNoiDung, tongHocVien } = formatTrainingDetails(trainingDetails);
 
-  return `
-🔔 <b>YÊU CẦU ĐÀO TẠO MỚI</b>
+  const phan = [];
 
-${e(trainingName)}
+  phan.push(urgent ? '🔥 <b>YÊU CẦU ĐÀO TẠO MỚI — KHẨN CẤP</b>' : '🔔 <b>YÊU CẦU ĐÀO TẠO MỚI</b>');
+  phan.push('');
 
-👤 <b>Người liên hệ:</b> ${e(clientName) || 'Chưa cập nhật'}
-🏢 <b>Công ty:</b> ${e(companyName) || 'Chưa cập nhật'}
-📧 <b>Email:</b> ${e(email) || 'Chưa cập nhật'}
-📱 <b>Điện thoại:</b> ${e(phone) || 'Chưa cập nhật'}
-📍 <b>Địa điểm:</b> ${e(location) || 'Chưa cập nhật'}
-👥 <b>Số học viên:</b> ${e(numberOfTrainees) || 'Chưa cập nhật'} người
-📅 <b>Dự kiến bắt đầu:</b> ${e(expectedStartDate) || 'Chưa cập nhật'}
-${additionalInfo ? `\n💬 <b>Ghi chú:</b> ${e(additionalInfo)}` : ''}
+  if (dongNoiDung) {
+    phan.push('📚 <b>Nội dung huấn luyện</b>');
+    phan.push(dongNoiDung);
+    if (tongHocVien > 0) phan.push(`   <b>Tổng: ${tongHocVien} học viên</b>`);
+    phan.push('');
+  }
 
-⏰ <b>Thời gian:</b> ${e(date)}
+  phan.push('👤 <b>Người liên hệ:</b> ' + (e(clientName) || 'Chưa cập nhật'));
+  phan.push('📧 <b>Email:</b> ' + (e(clientEmail) || 'Chưa cập nhật'));
+  phan.push('📱 <b>Điện thoại:</b> ' + (e(clientPhone) || 'Chưa cập nhật'));
+  phan.push('📍 <b>Địa điểm:</b> ' + (e(location) || 'Chưa cập nhật'));
 
-🔗 <a href="https://antoan.web.app/admin">Xem chi tiết</a>
-  `.trim();
+  if (trainingDuration) phan.push('⏱️ <b>Thời lượng:</b> ' + e(trainingDuration));
+  if (preferredTime) phan.push('📅 <b>Thời gian mong muốn:</b> ' + e(preferredTime));
+
+  if (description) {
+    phan.push('');
+    phan.push('💬 <b>Mô tả chi tiết:</b>');
+    phan.push(e(description));
+  }
+
+  phan.push('');
+  phan.push('⏰ ' + e(formatCreatedAt(createdAt)));
+
+  return phan.join('\n').trim();
 }
 
 module.exports = {
   escapeTelegramHtml,
   formatTrainingRequestMessage,
+  formatTrainingDetails,
   TRAINING_TYPE_MAP,
 };

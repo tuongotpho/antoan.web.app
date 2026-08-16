@@ -9,7 +9,6 @@ import { escapeTelegramHtml, formatTrainingRequestMessage } from '../functions/t
  */
 describe('escapeTelegramHtml', () => {
   it('đổi dấu & — trường hợp làm mất thông báo trong thực tế', () => {
-    // Tên doanh nghiệp Việt Nam rất hay có dấu &
     expect(escapeTelegramHtml('Điện lực A & B')).toBe('Điện lực A &amp; B');
   });
 
@@ -48,66 +47,115 @@ describe('escapeTelegramHtml', () => {
 });
 
 describe('formatTrainingRequestMessage', () => {
-  const duLieuMau = {
-    trainingType: 'an-toan-dien',
-    companyName: 'Điện lực A & B',
+  /**
+   * Dữ liệu này phải khớp ĐÚNG những gì TrainingRequestForm.tsx lưu xuống
+   * Firestore. Bản trước đọc nhầm sang tên trường của một phiên bản form cũ,
+   * nên tin nhắn gửi đi hầu hết là "Chưa cập nhật" dù khách điền đầy đủ.
+   */
+  const nhuFormThatLuu = {
     clientName: 'Nguyễn Văn An',
-    email: 'an@dienluc.vn',
-    phone: '0982722036',
+    clientEmail: 'an@dienluc.vn',
+    clientPhone: '0982722036',
     location: 'Hà Nội',
-    numberOfTrainees: 30,
-    expectedStartDate: '01/09/2026',
-    additionalInfo: 'Cần giảng viên có chứng chỉ <nhóm 3>',
+    description: 'Cần giảng viên có chứng chỉ, đào tạo ngoài giờ hành chính',
+    trainingDuration: '2 ngày',
+    preferredTime: 'T9/2026',
+    trainingDetails: [
+      { type: 'an-toan-dien', group: 'Nhóm 3 (NĐ 44)', participants: 30 },
+      { type: 'so-cap-cuu', group: 'Không áp dụng', participants: 12 },
+    ],
+    urgent: false,
     createdAt: new Date('2026-08-16T10:00:00Z'),
   };
 
-  it('không để lọt dấu & thô ra ngoài các thẻ hợp lệ', () => {
-    const tin = formatTrainingRequestMessage(duLieuMau);
-    // Bỏ hết thực thể đã escape rồi mới soi: không được còn & hay < > nào lạ
-    const conLai = tin.replace(/&(amp|lt|gt);/g, '');
-    const theHopLe = conLai.replace(/<\/?(b|a)(\s[^>]*)?>/g, '');
-    expect(theHopLe).not.toMatch(/[<>&]/);
+  it('hiện đủ thông tin liên hệ khách điền — không còn "Chưa cập nhật"', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).toContain('Nguyễn Văn An');
+    expect(tin).toContain('an@dienluc.vn');
+    expect(tin).toContain('0982722036');
+    expect(tin).toContain('Hà Nội');
+    expect(tin).not.toContain('Chưa cập nhật');
+  });
+
+  it('liệt kê từng nội dung huấn luyện kèm số học viên', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).toContain('An toàn Điện');
+    expect(tin).toContain('Sơ Cấp Cứu');
+    expect(tin).toContain('30');
+    expect(tin).toContain('12');
+  });
+
+  it('cộng đúng tổng số học viên của mọi nội dung', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).toContain('Tổng: 42 học viên');
+  });
+
+  it('bỏ nhãn nhóm khi khách chọn "Không áp dụng"', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).not.toContain('Không áp dụng');
+    expect(tin).toContain('Nhóm 3 (NĐ 44)');
+  });
+
+  it('hiện thời lượng và thời gian mong muốn', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).toContain('2 ngày');
+    expect(tin).toContain('T9/2026');
+  });
+
+  it('hiện mô tả chi tiết khách nhập', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).toContain('Cần giảng viên có chứng chỉ');
+  });
+
+  it('đánh dấu rõ khi là yêu cầu khẩn cấp', () => {
+    const thuong = formatTrainingRequestMessage(nhuFormThatLuu);
+    const khan = formatTrainingRequestMessage({ ...nhuFormThatLuu, urgent: true });
+    expect(thuong).toContain('YÊU CẦU ĐÀO TẠO MỚI');
+    expect(thuong).not.toContain('KHẨN CẤP');
+    expect(khan).toContain('KHẨN CẤP');
+  });
+
+  it('KHÔNG còn chèn liên kết vào tin nhắn', () => {
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).not.toContain('<a href');
+    expect(tin).not.toContain('antoan.web.app');
   });
 
   it('hiển thị tên công ty có dấu & dưới dạng an toàn', () => {
-    const tin = formatTrainingRequestMessage(duLieuMau);
+    const tin = formatTrainingRequestMessage({
+      ...nhuFormThatLuu,
+      clientName: 'Điện lực A & B',
+    });
     expect(tin).toContain('Điện lực A &amp; B');
-    expect(tin).not.toContain('Điện lực A & B');
   });
 
-  it('vô hiệu hoá thẻ trong phần ghi chú', () => {
-    const tin = formatTrainingRequestMessage(duLieuMau);
-    expect(tin).toContain('&lt;nhóm 3&gt;');
+  it('không để lọt dấu & hay thẻ lạ ra ngoài các thẻ hợp lệ', () => {
+    const tin = formatTrainingRequestMessage({
+      ...nhuFormThatLuu,
+      description: 'Xem <a href="http://xau.example">tại đây</a> & liên hệ',
+    });
+    const conLai = tin.replace(/&(amp|lt|gt);/g, '');
+    const theHopLe = conLai.replace(/<\/?b>/g, '');
+    expect(theHopLe).not.toMatch(/[<>&]/);
   });
 
-  it('giữ nguyên các thẻ định dạng của chính tin nhắn', () => {
-    const tin = formatTrainingRequestMessage(duLieuMau);
-    expect(tin).toContain('<b>YÊU CẦU ĐÀO TẠO MỚI</b>');
-    expect(tin).toContain('<a href="https://antoan.web.app/admin">');
+  it('dùng giờ Việt Nam chứ không phải giờ máy chủ', () => {
+    // Cloud Functions chạy giờ UTC. 10:00 UTC là 17:00 cùng ngày ở Việt Nam.
+    const tin = formatTrainingRequestMessage(nhuFormThatLuu);
+    expect(tin).toContain('17:00');
   });
 
-  it('dịch mã loại hình sang tên tiếng Việt', () => {
-    const tin = formatTrainingRequestMessage(duLieuMau);
-    expect(tin).toContain('An toàn Điện');
-  });
-
-  it('điền "Chưa cập nhật" cho ô trống thay vì để trống', () => {
-    const tin = formatTrainingRequestMessage({ trainingType: 'pccc' });
-    expect(tin).toContain('Chưa cập nhật');
-    expect(tin).toContain('Phòng Cháy Chữa Cháy');
+  it('không vỡ khi thiếu dữ liệu', () => {
+    expect(() => formatTrainingRequestMessage({})).not.toThrow();
+    expect(() => formatTrainingRequestMessage(undefined)).not.toThrow();
+    expect(formatTrainingRequestMessage({})).toContain('Chưa cập nhật');
   });
 
   it('không vỡ khi createdAt là Firestore Timestamp', () => {
     const tin = formatTrainingRequestMessage({
-      ...duLieuMau,
+      ...nhuFormThatLuu,
       createdAt: { seconds: 1755338400, nanoseconds: 0 },
     });
-    expect(tin).toContain('Thời gian:');
     expect(tin).not.toContain('N/A');
-  });
-
-  it('không vỡ khi không có dữ liệu nào', () => {
-    expect(() => formatTrainingRequestMessage({})).not.toThrow();
-    expect(() => formatTrainingRequestMessage(undefined)).not.toThrow();
   });
 });
