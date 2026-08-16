@@ -267,10 +267,14 @@ const BlogManagement: React.FC<BlogManagementProps> = ({ user }) => {
         <div className="flex gap-3">
           <button
             onClick={() => {
-              setShowAIWriter(!showAIWriter);
-              if (!showAIWriter) {
-                setShowForm(false);
+              // Viết cùng kiểu với nút "Tạo thủ công" cho nhất quán. Nút này
+              // chưa hỏng vì resetForm() không đụng tới showAIWriter, nhưng chỉ
+              // cần ai đó thêm một dòng vào resetForm là dính đúng cái bẫy kia.
+              if (showAIWriter) {
+                setShowAIWriter(false);
+              } else {
                 resetForm();
+                setShowAIWriter(true);
               }
             }}
             className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
@@ -280,10 +284,24 @@ const BlogManagement: React.FC<BlogManagementProps> = ({ user }) => {
           </button>
           <button
             onClick={() => {
-              setShowForm(!showForm);
-              if (!showForm) {
+              // LỖI CŨ — form không bao giờ mở được:
+              //
+              //   setShowForm(!showForm);   // xếp hàng: mở form
+              //   if (!showForm) {          // showForm vẫn là giá trị CŨ
+              //     resetForm();            // mà resetForm() có setShowForm(false)
+              //   }
+              //
+              // React gộp hai lệnh đặt trạng thái trong cùng một lần bấm, lệnh
+              // sau thắng — form đóng lại ngay khi vừa định mở. Nút "Viết bằng
+              // AI" không dính vì resetForm() không đụng tới trạng thái của nó.
+              //
+              // Nay tách rõ hai nhánh, và luôn đặt showForm SAU khi gọi resetForm.
+              if (showForm) {
+                resetForm(); // đang mở → dọn dữ liệu và đóng lại
+              } else {
                 setShowAIWriter(false);
-                resetForm();
+                resetForm(); // dọn dữ liệu của lần soạn trước
+                setShowForm(true); // rồi mới mở
               }
             }}
             className="bg-gradient-to-r from-primary to-orange-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
