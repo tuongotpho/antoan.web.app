@@ -12,6 +12,7 @@ import {
 import { PARTNER_CAPABILITIES } from '../types';
 import { isValidPhone, isValidTaxId } from '../utils/validationHelpers';
 import { useDongBangEsc } from '../hooks/useDongBangEsc';
+import { useKhoaConTroTrongHop } from '../hooks/useKhoaConTroTrongHop';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -40,6 +41,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
 
   // Bấm Esc để đóng — cách duy nhất với người chỉ dùng bàn phím.
   useDongBangEsc(true, onClose);
+
+  // Giữ con trỏ bàn phím ở trong hộp thoại, và trả về đúng nút cũ khi đóng.
+  const hopRef = useKhoaConTroTrongHop(true);
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -209,7 +213,15 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4"
       onClick={onClose}
     >
+      {/* role="dialog" và aria-modal cho trình đọc màn hình biết đây là hộp
+          thoại, phần nền phía sau coi như đang bị che. */}
       <div
+        ref={hopRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={
+          view === 'login' ? 'Đăng nhập' : view === 'register' ? 'Đăng ký đối tác' : 'Quên mật khẩu'
+        }
         className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
