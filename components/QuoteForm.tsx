@@ -15,6 +15,7 @@ import {
   sendQuoteNotificationToAdminChat,
 } from '../utils/chatHelpers';
 import { layTenHienThiDoiTac, khachDongYNhanEmail } from '../utils/quoteHelpers';
+import { useDongBangEsc } from '../hooks/useDongBangEsc';
 
 interface QuoteFormProps {
   request: TrainingRequest;
@@ -37,6 +38,9 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
     notes: '',
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Bấm Esc để đóng.
+  useDongBangEsc(true, onClose);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 

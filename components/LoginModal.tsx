@@ -11,6 +11,7 @@ import {
 } from '../services/firebaseConfig';
 import { PARTNER_CAPABILITIES } from '../types';
 import { isValidPhone, isValidTaxId } from '../utils/validationHelpers';
+import { useDongBangEsc } from '../hooks/useDongBangEsc';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -36,6 +37,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     subscribesToEmails: true,
   };
   const [registerData, setRegisterData] = useState(initialRegisterState);
+
+  // Bấm Esc để đóng — cách duy nhất với người chỉ dùng bàn phím.
+  useDongBangEsc(true, onClose);
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

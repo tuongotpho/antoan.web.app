@@ -1,5 +1,6 @@
 import React from 'react';
 import { PartnerProfile } from '../types';
+import { useDongBangEsc } from '../hooks/useDongBangEsc';
 
 interface ViewersModalProps {
   partners: PartnerProfile[];
@@ -7,6 +8,9 @@ interface ViewersModalProps {
 }
 
 const ViewersModal: React.FC<ViewersModalProps> = ({ partners, onClose }) => {
+  // Bấm Esc để đóng.
+  useDongBangEsc(true, onClose);
+
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4"

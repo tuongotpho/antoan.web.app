@@ -17,6 +17,9 @@ const TrustedPartnerInfoModal: React.FC<TrustedPartnerInfoModalProps> = ({
   onClose,
   onViewAllPartners,
 }) => {
+  // Bấm Esc để đóng.
+  useDongBangEsc(true, onClose);
+
   const websiteUrl = validateAndFormatUrl(partner.website);
   const phoneForTel = formatPhoneForTel(partner.phone);
   const phoneDisplay = formatPhoneForDisplay(partner.phone);
