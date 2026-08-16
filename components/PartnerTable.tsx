@@ -126,10 +126,20 @@ const PartnerTable: React.FC<PartnerTableProps> = ({
                     </>
                   )}
                   {viewType === 'managed' && onDelete && (
+                    {/* Xoá hồ sơ đối tác là xoá vĩnh viễn, không hoàn tác. */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation(); // Ngăn sự kiện click của hàng
-                        onDelete(partner.uid);
+                        const ten =
+                          partner.businessName || partner.taxId || partner.email || 'không rõ tên';
+                        if (
+                          window.confirm(
+                            `Xoá vĩnh viễn hồ sơ đối tác "${ten}"?\n\n` +
+                              'Không khôi phục lại được.'
+                          )
+                        ) {
+                          onDelete(partner.uid);
+                        }
                       }}
                       className="text-red-600 hover:text-red-900"
                     >

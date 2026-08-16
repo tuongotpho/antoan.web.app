@@ -64,8 +64,23 @@ const RequestTable: React.FC<RequestTableProps> = ({ requests, onDelete }) => {
                   {request.viewedBy?.length || 0}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  {/* Xoá yêu cầu là xoá vĩnh viễn một khách hàng tiềm năng —
+                      không có thùng rác, không hoàn tác được. Trước đây bấm là
+                      mất luôn, trong khi xoá bình luận hay bài viết lại có hỏi
+                      lại. Chỗ đáng hỏi nhất thì lại là chỗ duy nhất không hỏi. */}
                   <button
-                    onClick={() => onDelete(request.id)}
+                    onClick={() => {
+                      const ten = request.clientName || 'không rõ tên';
+                      const cty = request.location ? ` (${request.location})` : '';
+                      if (
+                        window.confirm(
+                          `Xoá vĩnh viễn yêu cầu của "${ten}"${cty}?\n\n` +
+                            'Không khôi phục lại được.'
+                        )
+                      ) {
+                        onDelete(request.id);
+                      }
+                    }}
                     className="text-red-600 hover:text-red-900"
                   >
                     Xóa
