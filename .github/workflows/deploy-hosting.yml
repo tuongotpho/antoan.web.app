@@ -92,6 +92,13 @@ jobs:
         # lặp lại được. Khác với npm install, nó không tự sửa lock file.
         run: npm ci
 
+      - name: Cài dependencies cho functions
+        # BẮT BUỘC: trước khi deploy, firebase CLI nạp functions/index.js để đọc
+        # danh sách trigger. Không có functions/node_modules thì việc nạp hỏng
+        # ngay dòng require đầu tiên với "Cannot find module 'firebase-functions/v1'"
+        # — nghe như lỗi mã nguồn nhưng thật ra chỉ là chưa cài thư viện.
+        run: npm ci --prefix functions
+
       - name: Tính ký hiệu phiên bản theo ngày (giờ Việt Nam)
         id: ver
         # Runner chạy giờ UTC, nên ép TZ về Việt Nam để bản deploy lúc rạng sáng
