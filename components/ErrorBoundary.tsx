@@ -24,7 +24,13 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null });
+    // Tải lại hẳn trang, không chỉ xoá trạng thái lỗi.
+    //
+    // Chỉ đặt lại trạng thái thì React dựng lại đúng thành phần vừa hỏng, với
+    // nguyên nhân y như cũ — bấm "Thử lại" mười lần vẫn ra màn hình lỗi. Lỗi
+    // hay gặp nhất ở đây là thiếu mảnh mã sau khi deploy bản mới, mà cái đó chỉ
+    // tải lại trang mới chữa được.
+    window.location.reload();
   };
 
   handleGoHome = () => {

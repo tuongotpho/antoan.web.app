@@ -152,7 +152,14 @@ const App: React.FC = () => {
           unreadCount={unreadCount}
         />
         <main className="flex-grow">
-          <ErrorBoundary>
+          {/* key theo đường dẫn: đổi trang là dựng lại lớp bắt lỗi.
+
+              TRƯỚC ĐÂY không có key, nên khi một trang gặp lỗi thì trạng thái
+              "đang lỗi" nằm lại mãi: người dùng bấm menu sang trang khác vẫn
+              thấy màn hình "Đã xảy ra lỗi", vì lớp bắt lỗi không được dựng lại.
+              Kẹt cho tới khi tải lại cả trang — mà nhiều người sẽ bỏ đi trước
+              khi nghĩ tới việc đó. */}
+          <ErrorBoundary key={location.pathname}>
             <Suspense fallback={<LoadingSpinner size="fullscreen" message="Đang tải..." />}>
               <Outlet />
             </Suspense>
