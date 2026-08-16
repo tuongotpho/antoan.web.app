@@ -464,6 +464,31 @@ function isCrawler(userAgent) {
 }
 
 /**
+ * Đặt thông tin cache cho các hàm phục vụ meta tag.
+ *
+ * LỖI ĐÃ GẶP THẬT: blogMetaTags và trainingMetaTags trả về nội dung KHÁC NHAU
+ * cho bot và cho người dùng thường — bot nhận trang thẻ meta, người dùng nhận
+ * trang ứng dụng. Nhưng phản hồi lại đặt `Cache-Control: public` mà KHÔNG khai
+ * báo `Vary: User-Agent`.
+ *
+ * Hậu quả: CDN của Firebase Hosting coi mọi request tới cùng một địa chỉ là
+ * như nhau và dùng chung một bản cache. Bot Google hay Facebook ghé trước là
+ * bản-dành-cho-bot bị cache, rồi phục vụ cho người thật. Mà bản đó có
+ * `<meta http-equiv="refresh">` trỏ về CHÍNH địa chỉ đang mở, nên người dùng
+ * rơi vào vòng chuyển hướng lặp lại chính nó.
+ *
+ * Ảnh hưởng toàn bộ bài blog và 8 trang lĩnh vực huấn luyện.
+ *
+ * `Vary: User-Agent` bảo CDN tách bản cache theo từng loại trình duyệt. Cache
+ * kém hiệu quả hơn một chút, nhưng đó là cái giá đúng cho việc trả nội dung
+ * khác nhau theo User-Agent.
+ */
+function datThongTinCache(res, giaySong) {
+  res.set('Cache-Control', `public, max-age=${giaySong}, s-maxage=${giaySong * 2}`);
+  res.set('Vary', 'User-Agent');
+}
+
+/**
  * Fetch and serve the SPA's index.html for regular browsers
  */
 async function serveSPAForBrowser(res) {
@@ -471,6 +496,9 @@ async function serveSPAForBrowser(res) {
     const response = await fetch('https://antoan.web.app/index.html');
     const html = await response.text();
     res.set('Content-Type', 'text/html; charset=utf-8');
+    // Bắt buộc: hàm này trả nội dung KHÁC NHAU tuỳ User-Agent, nên phải báo cho
+    // CDN biết mà tách bản cache. Xem giải thích đầy đủ ở datThongTinCache().
+    res.set('Vary', 'User-Agent');
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.send(html);
   } catch (error) {
@@ -614,7 +642,7 @@ exports.blogMetaTags = functions.https.onRequest(async (req, res) => {
 </body>
 </html>`;
 
-    res.set('Cache-Control', 'public, max-age=600, s-maxage=1200');
+    datThongTinCache(res, 600);
     res.send(html);
   } catch (error) {
     console.error('Error fetching blog post:', error);
@@ -680,7 +708,7 @@ exports.dynamicSitemap = functions.https.onRequest(async (req, res) => {
     xml += '</urlset>';
 
     res.set('Content-Type', 'application/xml');
-    res.set('Cache-Control', 'public, max-age=3600, s-maxage=7200');
+    datThongTinCache(res, 3600);
     res.send(xml);
 
     console.log(`Dynamic sitemap generated: ${staticPages.length} static + ${blogSnapshot.size} blog = ${staticPages.length + blogSnapshot.size} URLs`);
@@ -843,6 +871,6 @@ exports.trainingMetaTags = functions.https.onRequest(async (req, res) => {
 </body>
 </html>`;
 
-  res.set('Cache-Control', 'public, max-age=3600, s-maxage=7200');
+  datThongTinCache(res, 3600);
   res.send(html);
 });
