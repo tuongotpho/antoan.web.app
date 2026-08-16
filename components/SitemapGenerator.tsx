@@ -7,14 +7,34 @@ const SitemapGenerator: React.FC = () => {
     null
   );
 
-  const BASE_URL = 'https://atld.web.app';
+  // Tên miền thật của trang.
+  //
+  // TRƯỚC ĐÂY ghi 'https://atld.web.app' — sai tên miền, nên sitemap tạo ra từ
+  // trang quản trị chỉ đường cho Google sang một website khác. Bản trong
+  // scripts/generateSitemap.js đã được sửa từ trước, nhưng bản ở đây thì chưa
+  // ai sờ tới: cùng một lỗi, hai chỗ, vá một nơi là sót nơi kia.
+  const BASE_URL = 'https://antoan.web.app';
 
+  // Danh sách phải khớp với router.tsx.
+  //
+  // TRƯỚC ĐÂY có /training, /about và /contact — cả ba đều KHÔNG tồn tại trong
+  // router. Google truy vào sẽ bị đá về trang chủ, và coi đó là "404 giả".
+  //
+  // KHÔNG đưa /partners vào: firestore.rules yêu cầu đăng nhập mới xem được
+  // danh sách đối tác, nên Googlebot chỉ thấy màn hình mời đăng nhập.
   const staticPages = [
     { url: '/', changefreq: 'daily', priority: '1.0' },
     { url: '/blog', changefreq: 'daily', priority: '0.9' },
-    { url: '/training', changefreq: 'weekly', priority: '0.9' },
-    { url: '/about', changefreq: 'monthly', priority: '0.7' },
-    { url: '/contact', changefreq: 'monthly', priority: '0.7' },
+    { url: '/requests', changefreq: 'daily', priority: '0.8' },
+    { url: '/documents', changefreq: 'weekly', priority: '0.8' },
+    { url: '/training/an-toan-dien', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/an-toan-xay-dung', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/an-toan-hoa-chat', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/pccc', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/an-toan-buc-xa', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/quan-trac-moi-truong', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/danh-gia-phan-loai-lao-dong', changefreq: 'weekly', priority: '0.9' },
+    { url: '/training/so-cap-cuu', changefreq: 'weekly', priority: '0.9' },
   ];
 
   const generateSitemap = async () => {
@@ -49,8 +69,13 @@ const SitemapGenerator: React.FC = () => {
           post.createdAt?.toDate() ||
           new Date();
 
+        // Ưu tiên slug: địa chỉ có chữ dễ đọc tốt cho SEO hơn chuỗi id ngẫu
+        // nhiên. Trang chi tiết bài viết tra theo slug trước, không có mới tra
+        // theo id — nên cả hai đều mở được.
+        const duongDan = post.slug || doc.id;
+
         xml += '  <url>\n';
-        xml += `    <loc>${BASE_URL}/blog/${doc.id}</loc>\n`;
+        xml += `    <loc>${BASE_URL}/blog/${duongDan}</loc>\n`;
         xml += `    <changefreq>weekly</changefreq>\n`;
         xml += `    <priority>0.8</priority>\n`;
         xml += `    <lastmod>${lastmod.toISOString().split('T')[0]}</lastmod>\n`;

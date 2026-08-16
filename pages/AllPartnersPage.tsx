@@ -193,11 +193,13 @@ const AllPartnersPage: React.FC = () => {
 
   return (
     <>
-      {/* SEO Meta Tags */}
+      {/* SEO Meta Tags.
+          Địa chỉ chuẩn trước đây ghi 'atld.web.app' — trỏ sang website khác,
+          tức tự bảo Google rằng bản gốc của trang này nằm ở nơi khác. */}
       <SEOHead
         title="Đối Tác Huấn Luyện An Toàn Lao Động Uy Tín | SafetyConnect"
         description={`Danh sách ${partners.length} đơn vị đào tạo an toàn lao động được xác nhận và đánh giá cao trên toàn quốc. Tìm kiếm đối tác phù hợp với nhu cầu của bạn.`}
-        url="https://atld.web.app/partners"
+        url="https://antoan.web.app/partners"
         keywords={[
           'đối tác đào tạo ATLD',
           'đơn vị huấn luyện an toàn lao động',

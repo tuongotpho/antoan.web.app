@@ -1,13 +1,24 @@
 /**
- * Generate sitemap.xml for SEO
- * This is a utility to manually generate sitemap
- * Run this when you want to update the sitemap
+ * ⚠️ FILE NÀY HIỆN KHÔNG ĐƯỢC DÙNG Ở ĐÂU — cân nhắc xoá.
+ *
+ * Dự án đang có tới BA nơi sinh sitemap:
+ *
+ *   1. scripts/generateSitemap.js      — chạy tự động mỗi lần build (ĐANG DÙNG)
+ *   2. components/SitemapGenerator.tsx — nút bấm trong trang quản trị (ĐANG DÙNG)
+ *   3. file này                        — không ai gọi tới
+ *
+ * Ba bản chép rời nhau là nguồn của kiểu lỗi "vá một chỗ, sót hai chỗ": tên
+ * miền sai đã được sửa ở bản 1 từ lâu, nhưng bản 2 mãi tới hôm nay mới phát
+ * hiện là vẫn sai, còn bản này thì chưa ai đụng tới.
+ *
+ * Giữ lại thì nên gộp cả ba về một nguồn. Trước mắt sửa tên miền cho đúng để
+ * nếu có ai lỡ dùng thì không tạo ra sitemap chỉ sang website khác.
  */
 
 import { db, collection, getDocs, query, where } from '../services/firebaseConfig';
 import { BlogPost } from '../types';
 
-const SITE_URL = 'https://atld.web.app';
+const SITE_URL = 'https://antoan.web.app';
 
 interface SitemapUrl {
   loc: string;
