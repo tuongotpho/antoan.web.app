@@ -223,6 +223,7 @@ const TrainingRequestForm: React.FC = () => {
             type="text"
             name="clientName"
             placeholder="Tên người liên hệ (*)"
+            aria-label="Tên người liên hệ"
             value={formData.clientName}
             onChange={handleChange}
             className={inputClasses}
@@ -232,6 +233,7 @@ const TrainingRequestForm: React.FC = () => {
             type="email"
             name="clientEmail"
             placeholder="Email (*)"
+            aria-label="Email"
             value={formData.clientEmail}
             onChange={handleChange}
             className={inputClasses}
@@ -241,6 +243,7 @@ const TrainingRequestForm: React.FC = () => {
             type="tel"
             name="clientPhone"
             placeholder="Số điện thoại (*)"
+            aria-label="Số điện thoại"
             value={formData.clientPhone}
             onChange={handleChange}
             className={inputClasses}
@@ -265,6 +268,7 @@ const TrainingRequestForm: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <select
                   name="type"
+                  aria-label="Loại hình huấn luyện"
                   value={detail.type}
                   onChange={(e) => handleDetailChange(index, e)}
                   className={inputClasses}
@@ -281,6 +285,7 @@ const TrainingRequestForm: React.FC = () => {
                     type="text"
                     name="customType"
                     placeholder="Nội dung đào tạo (*)"
+                    aria-label="Nội dung đào tạo"
                     value={detail.customType}
                     onChange={(e) => handleDetailChange(index, e)}
                     className={inputClasses}
@@ -289,6 +294,7 @@ const TrainingRequestForm: React.FC = () => {
                 )}
                 <select
                   name="group"
+                  aria-label="Nhóm đối tượng theo Nghị định 44"
                   value={detail.group}
                   onChange={(e) => handleDetailChange(index, e)}
                   className={inputClasses}
@@ -304,6 +310,7 @@ const TrainingRequestForm: React.FC = () => {
                 type="number"
                 name="participants"
                 placeholder="Số lượng học viên (*)"
+                aria-label="Số lượng học viên"
                 value={detail.participants}
                 onChange={(e) => handleDetailChange(index, e)}
                 className={inputClasses}
@@ -329,6 +336,7 @@ const TrainingRequestForm: React.FC = () => {
               type="text"
               name="trainingDuration"
               placeholder="Thời gian huấn luyện (VD: 2 ngày) (*)"
+              aria-label="Thời gian huấn luyện"
               value={formData.trainingDuration}
               onChange={handleChange}
               className={inputClasses}
@@ -338,6 +346,7 @@ const TrainingRequestForm: React.FC = () => {
               type="text"
               name="preferredTime"
               placeholder="Thời điểm huấn luyện (VD: T11/2024) (*)"
+              aria-label="Thời điểm huấn luyện"
               value={formData.preferredTime}
               onChange={handleChange}
               className={inputClasses}
@@ -348,6 +357,7 @@ const TrainingRequestForm: React.FC = () => {
             type="text"
             name="location"
             placeholder="Địa điểm huấn luyện (*)"
+            aria-label="Địa điểm huấn luyện"
             value={formData.location}
             onChange={handleChange}
             className={inputClasses}
@@ -356,6 +366,7 @@ const TrainingRequestForm: React.FC = () => {
           <textarea
             name="description"
             placeholder="Mô tả chi tiết yêu cầu khác (ví dụ: huấn luyện ngoài giờ hành chính, cấp chứng chỉ sau khoá, đào tạo tại nhà máy...)"
+            aria-label="Mô tả chi tiết yêu cầu khác"
             value={formData.description}
             onChange={handleChange}
             rows={4}
