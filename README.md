@@ -155,6 +155,7 @@ Cấp thêm tại Google Cloud Console → IAM & Admin → IAM → tìm service 
 | Service Account User | bắt buộc kèm theo khi deploy functions |
 | Cloud Build Editor + Artifact Registry Writer | quá trình đóng gói functions |
 | **Firebase Extensions Viewer** | CLI liệt kê tiện ích đang cài trước khi deploy functions |
+| **Secret Manager Admin** | đọc các secret (`TELEGRAM_BOT_TOKEN`, `GEMINI_API_KEY`…) và cấp quyền đọc chúng cho tài khoản chạy functions |
 
 **Muốn cấp một lần cho xong:** vai trò **Firebase Admin** (`roles/firebase.admin`)
 bao trọn nhóm Firebase ở trên. Vẫn cần thêm Cloud Functions Admin, Service

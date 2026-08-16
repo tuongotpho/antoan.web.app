@@ -200,14 +200,36 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
         run: |
-          if ! npx firebase-tools@14 deploy \
-                 --only functions \
-                 --project "$PROJECT_ID" \
-                 --non-interactive \
-                 --force; then
-            echo "::error::Không deploy được functions. Log ghi 'firebaseextensions.googleapis.com ... 403' thì khoá thiếu vai trò **Firebase Extensions Viewer** — firebase CLI liệt kê tiện ích đang cài để cảnh báo xung đột trước khi deploy functions. Hosting và rules đã deploy xong ở các bước trên."
-            exit 1
-          fi
+          # Giữ lại log để đoán đúng vai trò còn thiếu. Trước đây bước này in ra
+          # một thông báo cố định về Extensions, nên khi vướng quyền khác thì
+          # thông báo chỉ sai đường — mất thời gian mò.
+          set +e
+          npx firebase-tools@14 deploy \
+            --only functions \
+            --project "$PROJECT_ID" \
+            --non-interactive \
+            --force 2>&1 | tee "$RUNNER_TEMP/deploy-functions.log"
+          ma=${PIPESTATUS[0]}
+          set -e
+          [ "$ma" -eq 0 ] && exit 0
+
+          log=$(cat "$RUNNER_TEMP/deploy-functions.log")
+          thieu=""
+          case "$log" in
+            *secretmanager.versions*|*secretmanager.googleapis.com*)
+              thieu="Secret Manager Admin — khoá phải đọc được các secret (TELEGRAM_BOT_TOKEN, GEMINI_API_KEY...) và cấp quyền đọc chúng cho tài khoản chạy functions" ;;
+            *firebaseextensions*)
+              thieu="Firebase Extensions Viewer — CLI liệt kê tiện ích đang cài trước khi deploy functions" ;;
+            *cloudbuild*|*artifactregistry*)
+              thieu="Cloud Build Editor và Artifact Registry Writer — dùng khi đóng gói functions" ;;
+            *iam.serviceAccounts.actAs*|*Service Account User*)
+              thieu="Service Account User — bắt buộc để deploy functions" ;;
+            *)
+              thieu="(không đoán được từ log — mở log đầy đủ ở tab Actions để xem dòng 403 đầu tiên)" ;;
+          esac
+
+          echo "::error::Không deploy được functions. Vai trò còn thiếu, nhiều khả năng là: ${thieu}. Cấp tại Google Cloud Console → IAM cho service account đang dùng, rồi bấm Re-run jobs. Hosting, firestore rules và storage rules đã deploy xong ở các bước trên."
+          exit 1
 
       - name: Xoá khoá service account
         # Chạy cả khi bước trên hỏng, để khoá không nằm lại trên máy chạy CI.
