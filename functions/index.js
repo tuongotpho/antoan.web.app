@@ -130,8 +130,15 @@ exports.notifyNewTrainingRequest = functions
 
     console.log('New training request created:', requestId);
 
-    if (!TELEGRAM_CHAT_ID) {
-      console.warn('TELEGRAM_CHAT_ID not configured. Skipping notification.');
+    // Đọc qua layCauHinhTelegram() chứ KHÔNG dùng biến cấp module.
+    // Chỗ này từng còn sót lại biến cũ sau khi đổi cách đọc secret, khiến hàm
+    // sập ngay với "TELEGRAM_CHAT_ID is not defined" mỗi lần có yêu cầu mới —
+    // thông báo không bao giờ được gửi mà bên ngoài nhìn vào vẫn thấy êm.
+    const { token, chatId } = layCauHinhTelegram();
+    if (!token || !chatId) {
+      console.warn(
+        'Chưa cấu hình TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID — bỏ qua việc gửi thông báo.'
+      );
       return;
     }
 
@@ -140,7 +147,7 @@ exports.notifyNewTrainingRequest = functions
       await sendTelegramMessage(message);
       console.log('Notification sent for request:', requestId);
     } catch (error) {
-      console.error('Error in notifyNewTrainingRequest:', error);
+      console.error('Error in notifyNewTrainingRequest:', error.message);
     }
   });
 

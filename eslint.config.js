@@ -11,7 +11,15 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'node_modules/**',
-      'functions/**',
+      // KHÔNG bỏ qua 'functions/**' nữa.
+      //
+      // Trước đây cả thư mục functions bị loại khỏi lint, tức phần máy chủ —
+      // nơi gửi thông báo, gửi email và gọi API tính tiền — lại là chỗ DUY NHẤT
+      // không được soát. Hậu quả có thật: một biến bị xoá mà còn sót chỗ dùng
+      // lọt qua mọi vòng kiểm, chỉ lộ ra khi hàm sập giữa lúc chạy thật và
+      // thông báo yêu cầu mới im lặng biến mất. Rule no-undef bắt được ngay
+      // nếu eslint được phép nhìn vào file đó.
+      'functions/node_modules/**',
       'public/sw.js',
       'tailwind.config.js',
       '*.config.js',
@@ -68,6 +76,31 @@ export default tseslint.config(
     },
     rules: {
       'no-console': 'off',
+    },
+  },
+
+  // Cloud Functions — mã chạy trên máy chủ, viết theo kiểu CommonJS.
+  {
+    files: ['functions/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      // Đây là chốt chặn chính: bắt biến chưa khai báo. Chính rule này lẽ ra
+      // đã chặn được lỗi "TELEGRAM_CHAT_ID is not defined" trước khi deploy.
+      'no-undef': 'error',
+
+      // Máy chủ ghi log là chuyện bình thường
+      'no-console': 'off',
+
+      // Đây là JavaScript thuần theo kiểu CommonJS, không phải TypeScript.
+      // Các rule dưới đây sinh ra để giữ nếp cho mã TypeScript, áp vào đây chỉ
+      // tạo tiếng ồn và che mất lỗi thật.
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
 
