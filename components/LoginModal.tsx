@@ -219,6 +219,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
               <input
                 type="email"
                 placeholder="Email"
+                aria-label="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClasses}
@@ -228,6 +229,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 <input
                   type="password"
                   placeholder="Mật khẩu"
+                  aria-label="Mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={inputClasses}
@@ -298,6 +300,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 <input
                   type="email"
                   placeholder="Email đăng nhập (*)"
+                  aria-label="Email đăng nhập"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={inputClasses}
@@ -306,6 +309,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 <input
                   type="password"
                   placeholder="Mật khẩu (*)"
+                  aria-label="Mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={inputClasses}
@@ -316,6 +320,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 type="text"
                 name="businessName"
                 placeholder="Tên doanh nghiệp (*)"
+                aria-label="Tên doanh nghiệp"
                 value={registerData.businessName}
                 onChange={handleRegisterChange}
                 className={inputClasses}
@@ -325,6 +330,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 type="text"
                 name="taxId"
                 placeholder="Mã số thuế (*)"
+                aria-label="Mã số thuế"
                 value={registerData.taxId}
                 onChange={handleRegisterChange}
                 className={inputClasses}
@@ -335,6 +341,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   type="text"
                   name="address"
                   placeholder="Địa chỉ công ty (*)"
+                  aria-label="Địa chỉ công ty"
                   value={registerData.address}
                   onChange={handleRegisterChange}
                   className={inputClasses}
@@ -344,6 +351,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   type="tel"
                   name="phone"
                   placeholder="Số điện thoại (*)"
+                  aria-label="Số điện thoại"
                   value={registerData.phone}
                   onChange={handleRegisterChange}
                   className={inputClasses}
@@ -354,6 +362,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 type="url"
                 name="website"
                 placeholder="Website (nếu có)"
+                aria-label="Website"
                 value={registerData.website}
                 onChange={handleRegisterChange}
                 className={inputClasses}
@@ -361,6 +370,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
               <textarea
                 name="description"
                 placeholder="Mô tả về doanh nghiệp và năng lực đào tạo"
+                aria-label="Mô tả về doanh nghiệp và năng lực đào tạo"
                 value={registerData.description}
                 onChange={handleRegisterChange}
                 rows={3}
@@ -369,6 +379,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
               <textarea
                 name="notableClients"
                 placeholder="Các khách hàng/dự án tiêu biểu (cách nhau bởi dấu phẩy)"
+                aria-label="Các khách hàng/dự án tiêu biểu"
                 value={registerData.notableClients}
                 onChange={handleRegisterChange}
                 rows={2}
@@ -454,6 +465,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
               <input
                 type="email"
                 placeholder="Email"
+                aria-label="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClasses}
