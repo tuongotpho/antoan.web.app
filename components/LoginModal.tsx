@@ -10,6 +10,7 @@ import {
   serverTimestamp,
 } from '../services/firebaseConfig';
 import { PARTNER_CAPABILITIES } from '../types';
+import { isValidPhone, isValidTaxId } from '../utils/validationHelpers';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -69,8 +70,22 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
           setLoading(false);
           return;
         }
+        // Dùng các hàm kiểm tra đã có sẵn trong dự án. Màn hình này trước đây
+        // không kiểm gì cả, nên một số điện thoại gõ sai vẫn vào thẳng cơ sở
+        // dữ liệu — mà đó lại là cách duy nhất để khách liên hệ với đối tác.
+        if (!isValidPhone(registerData.phone.trim())) {
+          setError('Số điện thoại không hợp lệ. Vui lòng nhập số di động Việt Nam (10 chữ số).');
+          setLoading(false);
+          return;
+        }
         if (!registerData.businessName.trim()) {
           setError('Vui lòng nhập tên doanh nghiệp.');
+          setLoading(false);
+          return;
+        }
+        // Mã số thuế không bắt buộc, nhưng đã điền thì phải đúng dạng
+        if (registerData.taxId.trim() && !isValidTaxId(registerData.taxId.trim())) {
+          setError('Mã số thuế không hợp lệ. Nhập 10 chữ số, hoặc dạng 10 chữ số - 3 chữ số.');
           setLoading(false);
           return;
         }
@@ -83,24 +98,44 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         const user = userCredential.user;
         if (user) {
           const partnerDocRef = doc(db, 'partners', user.uid);
-          await setDoc(partnerDocRef, {
-            uid: user.uid,
-            email: email,
-            businessName: registerData.businessName,
-            taxId: registerData.taxId,
-            address: registerData.address,
-            phone: registerData.phone,
-            website: registerData.website,
-            description: registerData.description || 'description',
-            notableClients: registerData.notableClients,
-            capabilities: registerData.capabilities,
-            subscribesToEmails: registerData.subscribesToEmails,
-            createdAt: serverTimestamp(),
-            status: 'pending',
-            membership: 'free',
-            verified: false,
-            featured: false,
-          });
+          try {
+            await setDoc(partnerDocRef, {
+              uid: user.uid,
+              email: email,
+              businessName: registerData.businessName,
+              taxId: registerData.taxId,
+              address: registerData.address,
+              phone: registerData.phone,
+              website: registerData.website,
+              // Để trống thì lưu chuỗi rỗng. TRƯỚC ĐÂY dùng
+              // `registerData.description || 'description'`, nghĩa là đối tác
+              // không điền mô tả thì hồ sơ lưu đúng chữ "description" — và
+              // chữ đó hiện ra trên thẻ giới thiệu ở trang chủ.
+              description: registerData.description?.trim() || '',
+              notableClients: registerData.notableClients,
+              capabilities: registerData.capabilities,
+              subscribesToEmails: registerData.subscribesToEmails,
+              createdAt: serverTimestamp(),
+              status: 'pending',
+              membership: 'free',
+              verified: false,
+              featured: false,
+            });
+          } catch (loiHoSo) {
+            // Tài khoản đăng nhập ĐÃ được tạo ở bước trên, chỉ hồ sơ là chưa
+            // lưu được. Nếu để lỗi này rơi vào phần bắt lỗi chung, người dùng
+            // chỉ thấy "Đã xảy ra lỗi, vui lòng thử lại" rồi đăng ký lại — và
+            // lần đó nhận "Email này đã được sử dụng". Tắc hoàn toàn: có tài
+            // khoản nhưng không có hồ sơ, mà cũng không đăng ký lại được.
+            console.error('Tạo tài khoản xong nhưng chưa lưu được hồ sơ:', loiHoSo);
+            setError(
+              'Đã tạo được tài khoản nhưng chưa lưu được hồ sơ doanh nghiệp. ' +
+                'Anh/chị hãy đăng nhập bằng email và mật khẩu vừa đăng ký, rồi liên hệ ' +
+                'quản trị viên để hoàn tất hồ sơ. Không cần đăng ký lại.'
+            );
+            setLoading(false);
+            return;
+          }
         }
       }
       onClose();
