@@ -133,6 +133,56 @@ describe('firestore.rules — đánh dấu tin nhắn đã đọc', () => {
   });
 });
 
+describe('firestore.rules — tạo bài viết blog', () => {
+  it('admin TẠO được bài viết mới', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(
+      setDoc(doc(db, 'blogPosts', 'bai_moi'), {
+        title: 'Bài kiểm thử',
+        slug: 'bai-kiem-thu',
+        excerpt: 'tóm tắt',
+        content: '<p>nội dung</p>',
+        coverImage: 'https://vi.du/anh.jpg',
+        category: 'An toàn lao động',
+        tags: ['an toàn'],
+        author: { uid: UID_ADMIN, name: 'Admin', email: 'admin@antoan.vn' },
+        published: true,
+        viewCount: 0,
+      })
+    );
+  });
+
+  it('admin SỬA được bài viết', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    await testEnv!.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'blogPosts', 'bai1'), {
+        title: 'Bài cũ',
+        published: true,
+        viewCount: 0,
+      });
+    });
+    const db = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(updateDoc(doc(db, 'blogPosts', 'bai1'), { title: 'Đã sửa' }));
+  });
+
+  it('người KHÔNG phải admin không tạo được bài viết', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.authenticatedContext(UID_NGUOILA).firestore();
+    await assertFails(
+      setDoc(doc(db, 'blogPosts', 'bai_xau'), { title: 'Spam', published: true })
+    );
+  });
+
+  it('đối tác đã duyệt cũng không tạo được bài viết', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.authenticatedContext(UID_DOITAC).firestore();
+    await assertFails(
+      setDoc(doc(db, 'blogPosts', 'bai_doitac'), { title: 'Quảng cáo', published: true })
+    );
+  });
+});
+
 describe('firestore.rules — dữ liệu kinh doanh', () => {
   it('khách vãng lai KHÔNG đọc được danh sách yêu cầu', async () => {
     if (boQuaNeuKhongCoEmulator()) return;

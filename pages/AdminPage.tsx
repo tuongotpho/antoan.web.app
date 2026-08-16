@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { auth, type User } from '../services/firebaseConfig';
+import React, { useState, useContext } from 'react';
 import { AppContext } from '../App';
 import { useAdminData } from '../hooks/useAdminData';
 import { useAdminActions } from '../hooks/useAdminActions';
@@ -11,7 +10,6 @@ type AdminTab = 'dashboard' | 'blog' | 'seo';
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const { user, isAdmin, loadingAuth, onLoginRequired } = useContext(AppContext);
 
   const { partners, requests, loading, loadError } = useAdminData();
@@ -24,9 +22,21 @@ const AdminPage: React.FC = () => {
     handleUpdatePartner,
   } = useAdminActions();
 
-  useEffect(() => {
-    setCurrentUser(auth.currentUser);
-  }, []);
+  // TRƯỚC ĐÂY ở đây có một biến currentUser riêng, lấy bằng:
+  //
+  //     useEffect(() => { setCurrentUser(auth.currentUser); }, []);
+  //
+  // Firebase khôi phục phiên đăng nhập BẤT ĐỒNG BỘ: lúc trang vừa dựng,
+  // auth.currentUser thường vẫn rỗng, vài trăm mili giây sau mới có giá trị.
+  // Đoạn trên chỉ đọc đúng một lần rồi thôi, không bao giờ đọc lại — nên
+  // currentUser kẹt ở rỗng, và điều kiện hiển thị tab Blog không bao giờ đúng:
+  // bấm vào "Quản lý Blog" thì trang trắng, không tạo bài viết được.
+  //
+  // Lỗi lúc được lúc không: vào từ trang khác thì auth có thể đã kịp sẵn sàng,
+  // còn tải thẳng /admin thì hỏng — kiểu lỗi khó lần ra nhất.
+  //
+  // Nay dùng chung `user` của AppContext, vốn được cập nhật đúng qua
+  // onAuthStateChanged mỗi khi trạng thái đăng nhập đổi.
 
   // Trang này TRƯỚC ĐÂY không kiểm quyền: ai gõ /admin cũng vào được và nhận
   // câu lỗi kỹ thuật tiếng Anh "Missing or insufficient permissions".
@@ -152,7 +162,7 @@ const AdminPage: React.FC = () => {
       )}
 
       {/* Blog Management Tab */}
-      {activeTab === 'blog' && currentUser && <BlogManagement user={currentUser} />}
+      {activeTab === 'blog' && user && <BlogManagement user={user} />}
 
       {/* SEO Tools Tab */}
       {activeTab === 'seo' && <SeoTab />}
