@@ -1,6 +1,7 @@
 import React from 'react';
 import { PartnerProfile } from '../types';
 import { useDongBangEsc } from '../hooks/useDongBangEsc';
+import { useKhoaConTroTrongHop } from '../hooks/useKhoaConTroTrongHop';
 
 interface ViewersModalProps {
   partners: PartnerProfile[];
@@ -10,6 +11,7 @@ interface ViewersModalProps {
 const ViewersModal: React.FC<ViewersModalProps> = ({ partners, onClose }) => {
   // Bấm Esc để đóng.
   useDongBangEsc(true, onClose);
+  const hopRef = useKhoaConTroTrongHop(true);
 
   return (
     <div
@@ -18,6 +20,10 @@ const ViewersModal: React.FC<ViewersModalProps> = ({ partners, onClose }) => {
     >
       <div
         className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        ref={hopRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Danh sách đơn vị đã xem"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4 border-b pb-3">

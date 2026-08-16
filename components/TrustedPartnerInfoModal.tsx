@@ -19,6 +19,7 @@ const TrustedPartnerInfoModal: React.FC<TrustedPartnerInfoModalProps> = ({
 }) => {
   // Bấm Esc để đóng.
   useDongBangEsc(true, onClose);
+  const hopRef = useKhoaConTroTrongHop(true);
 
   const websiteUrl = validateAndFormatUrl(partner.website);
   const phoneForTel = formatPhoneForTel(partner.phone);
@@ -34,6 +35,10 @@ const TrustedPartnerInfoModal: React.FC<TrustedPartnerInfoModalProps> = ({
     >
       <div
         className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up"
+        ref={hopRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Thông tin đối tác"
         onClick={(e) => e.stopPropagation()}
         role="document"
       >

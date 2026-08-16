@@ -7,6 +7,8 @@ interface ImageLightboxProps {
 }
 
 const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialIndex, onClose }) => {
+  const hopRef = useKhoaConTroTrongHop(true);
+
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   const goToPrevious = useCallback(() => {
@@ -75,6 +77,10 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialIndex, onC
       {/* Main image */}
       <div
         className="max-w-[90vw] max-h-[90vh] flex items-center justify-center"
+        ref={hopRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Xem ảnh"
         onClick={(e) => e.stopPropagation()}
       >
         <img

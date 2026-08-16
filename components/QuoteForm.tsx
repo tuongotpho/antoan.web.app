@@ -16,6 +16,7 @@ import {
 } from '../utils/chatHelpers';
 import { layTenHienThiDoiTac, khachDongYNhanEmail } from '../utils/quoteHelpers';
 import { useDongBangEsc } from '../hooks/useDongBangEsc';
+import { useKhoaConTroTrongHop } from '../hooks/useKhoaConTroTrongHop';
 
 interface QuoteFormProps {
   request: TrainingRequest;
@@ -39,8 +40,10 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Bấm Esc để đóng.
+  // Bấm Esc để đóng, và giữ con trỏ bàn phím ở trong hộp thoại.
   useDongBangEsc(true, onClose);
+  const hopRef = useKhoaConTroTrongHop(true);
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -161,7 +164,13 @@ const QuoteForm: React.FC<QuoteFormProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div
+        ref={hopRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Gửi báo giá"
+        className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-primary to-orange-600 text-white p-6 rounded-t-lg">
           <div className="flex justify-between items-center">
