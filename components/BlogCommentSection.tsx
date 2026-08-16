@@ -20,6 +20,11 @@ import { BlogComment } from '../types';
 import LoadingSpinner from './LoadingSpinner';
 import ImageLightbox from './ImageLightbox';
 import { compressImage, formatFileSize } from '../utils/imageCompression';
+import { lamSachTenFile } from '../utils/fileUpload';
+
+// Giới hạn độ dài bình luận. Trước đây không có, nên một bình luận dài hàng
+// trăm nghìn ký tự vẫn lưu được — vừa tốn dung lượng, vừa phá vỡ bố cục trang.
+const DO_DAI_TOI_DA = 5000;
 
 interface BlogCommentSectionProps {
   postId: string;
@@ -79,6 +84,28 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
         return;
       }
 
+      // Chốt định dạng: trước đây chọn file gì cũng nhận, kể cả PDF hay .exe.
+      // Hàm nén ảnh sẽ vỡ giữa chừng, còn storage.rules thì chỉ từ chối sau khi
+      // người dùng đã chờ tải xong — cả hai đều cho ra một lỗi khó hiểu.
+      const khongPhaiAnh = files.filter((f) => !f.type.startsWith('image/'));
+      if (khongPhaiAnh.length > 0) {
+        alert(
+          `Chỉ nhận file ảnh. Các file sau không phải ảnh: ${khongPhaiAnh
+            .map((f) => f.name)
+            .join(', ')}`
+        );
+        return;
+      }
+
+      // Chốt kích thước ảnh gốc. Ảnh sẽ được nén ngay sau đây, nhưng một file
+      // 200MB vẫn đủ làm treo trình duyệt trước khi kịp nén.
+      const GIOI_HAN_MB = 20;
+      const quaLon = files.filter((f) => f.size > GIOI_HAN_MB * 1024 * 1024);
+      if (quaLon.length > 0) {
+        alert(`Ảnh quá lớn (tối đa ${GIOI_HAN_MB}MB mỗi ảnh): ${quaLon.map((f) => f.name).join(', ')}`);
+        return;
+      }
+
       setCompressing(true);
       try {
         // Compress images before adding
@@ -95,9 +122,13 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
           const compressedFile = new File([compressedBlob], file.name, { type: file.type });
           const compressedSize = compressedFile.size;
 
-          console.log(
-            `Compressed ${file.name}: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)}`
-          );
+          // Chỉ báo khi nén không ăn thua (ảnh sau nén vẫn gần bằng ảnh gốc),
+          // vì đó mới là thứ đáng chú ý. Trước đây log mọi lần, làm ngập console.
+          if (compressedSize > originalSize * 0.9) {
+            console.warn(
+              `Nén ít tác dụng với ${file.name}: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)}`
+            );
+          }
 
           compressedFiles.push(compressedFile);
           newPreviewUrls.push(URL.createObjectURL(compressedBlob));
@@ -125,8 +156,17 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
   const uploadImages = async (): Promise<string[]> => {
     if (imageFiles.length === 0) return [];
 
-    const uploadPromises = imageFiles.map(async (file) => {
-      const fileName = `blog-comments/${postId}/${Date.now()}_${file.name}`;
+    const uploadPromises = imageFiles.map(async (file, i) => {
+      // Tên file do người dùng đặt nên phải làm sạch trước khi ghép vào đường
+      // dẫn. Trước đây ghép thẳng file.name, dẫn tới hai chuyện:
+      //   - tên chứa dấu gạch chéo sinh thêm cấp thư mục, mà storage.rules chỉ
+      //     khớp đúng blog-comments/{postId}/{imageId} — lệch một cấp là rơi
+      //     vào default deny và ảnh không tải lên được
+      //   - tên chứa ? hoặc # làm hỏng địa chỉ tải ảnh về
+      // Thêm chỉ số i để hai ảnh chọn cùng lúc không đè lên nhau khi Date.now()
+      // trả về cùng một mốc.
+      const tenSach = lamSachTenFile(file.name);
+      const fileName = `blog-comments/${postId}/${Date.now()}_${i}_${tenSach}`;
       const imageRef = storageRef(storage, fileName);
       await uploadBytes(imageRef, file);
       return await getDownloadURL(imageRef);
@@ -145,6 +185,14 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
 
     if (!commentText.trim() && imageFiles.length === 0) {
       alert('Vui lòng nhập nội dung hoặc chọn ảnh');
+      return;
+    }
+
+    if (commentText.length > DO_DAI_TOI_DA) {
+      alert(
+        `Bình luận quá dài (${commentText.length.toLocaleString('vi-VN')} ký tự). ` +
+          `Tối đa ${DO_DAI_TOI_DA.toLocaleString('vi-VN')} ký tự.`
+      );
       return;
     }
 

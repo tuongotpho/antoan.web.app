@@ -141,18 +141,37 @@ jobs:
           fi
           printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
 
-      - name: Deploy hosting, rules và functions
+      # Deploy làm HAI bước, không gộp một lệnh.
+      #
+      # Lý do: chỉ cần có "storage" trong danh sách là firebase CLI đi hỏi
+      # thông tin bucket mặc định NGAY TỪ ĐẦU. Nếu khoá thiếu quyền
+      # firebasestorage.defaultBucket.get thì cả lệnh dừng, và hosting lẫn rules
+      # lẫn functions đều không được deploy — dù chúng chẳng liên quan gì tới
+      # Storage. Tách ra thì một quyền còn thiếu chỉ chặn đúng phần của nó.
+      #
+      # Target "main" trỏ site "antoan"; site atld-connect không bị đụng tới.
+      - name: Deploy hosting, firestore rules và functions
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
-        # Deploy tất cả trong MỘT lệnh, có ghi rõ --project để không bao giờ
-        # phụ thuộc vào project mặc định của .firebaserc nữa.
-        # Target "main" trỏ site "antoan"; site atld-connect không bị đụng tới.
         run: |
           npx firebase-tools@14 deploy \
-            --only hosting:main,firestore:rules,storage,functions \
+            --only hosting:main,firestore:rules,functions \
             --project "$PROJECT_ID" \
             --non-interactive \
             --force
+
+      - name: Deploy storage rules
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          if ! npx firebase-tools@14 deploy \
+                 --only storage \
+                 --project "$PROJECT_ID" \
+                 --non-interactive \
+                 --force; then
+            echo "::error::Không deploy được storage.rules. Nếu log ghi 'firebasestorage.defaultBucket.get denied' thì khoá service account còn thiếu vai trò **Firebase Storage Admin** (khác với 'Storage Admin' của Cloud Storage). Cấp tại Google Cloud Console → IAM, rồi chạy lại. Các phần khác đã deploy xong ở bước trên."
+            exit 1
+          fi
 
       - name: Xoá khoá service account
         # Chạy cả khi bước trên hỏng, để khoá không nằm lại trên máy chạy CI.

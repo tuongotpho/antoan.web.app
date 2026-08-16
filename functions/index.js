@@ -11,18 +11,39 @@ const {
 initializeApp();
 const db = getFirestore();
 
-// Telegram Bot Configuration
+// Cấu hình bot Telegram.
 //
-// CẢNH BÁO: trước đây token nằm cứng ngay trong file này và đã bị đẩy lên một
-// repo công khai — coi như lộ vĩnh viễn (vẫn còn trong lịch sử git). Token cũ
-// PHẢI được thu hồi qua @BotFather; đổi code thôi là chưa đủ.
+// CẢNH BÁO LỊCH SỬ: token cũ từng nằm cứng trong file này và đã bị đẩy lên repo
+// công khai — vẫn đọc được trong lịch sử git. Token đó đã được thu hồi qua
+// @BotFather ngày 16/08/2026. Không bao giờ đặt token thẳng vào mã.
 //
-// Đặt giá trị mới bằng một trong hai cách:
-//   firebase functions:config:set telegram.bot_token="..." telegram.chat_id="..."
-// hoặc biến môi trường TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID.
-const telegramConfig = (functions.config && functions.config().telegram) || {};
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || telegramConfig.bot_token || '';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || telegramConfig.chat_id || '';
+// Đặt token mới:
+//   firebase functions:secrets:set TELEGRAM_BOT_TOKEN
+//   firebase functions:secrets:set TELEGRAM_CHAT_ID
+//
+// PHẢI đọc bên trong hàm, không đọc ở cấp module.
+//
+// Secret chỉ được nạp vào biến môi trường KHI HÀM CHẠY, còn phần thân file này
+// được nạp lúc khởi tạo — đọc ở đây thì lấy về chuỗi rỗng, và cái rỗng đó bị
+// giữ nguyên suốt vòng đời tiến trình. Kết quả: đặt token đúng mà thông báo
+// vẫn im lặng, không báo lỗi gì.
+//
+// Vẫn đọc functions.config() làm phương án lùi cho cấu hình cũ, nhưng cách đó
+// đã bị Firebase khai tử, nên hãy chuyển hẳn sang secrets.
+const TEN_SECRET_TELEGRAM = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID'];
+
+const layCauHinhTelegram = () => {
+  let cauHinhCu = {};
+  try {
+    cauHinhCu = (functions.config && functions.config().telegram) || {};
+  } catch {
+    // functions.config() không dùng được ở môi trường mới — bỏ qua.
+  }
+  return {
+    token: process.env.TELEGRAM_BOT_TOKEN || cauHinhCu.bot_token || '',
+    chatId: process.env.TELEGRAM_CHAT_ID || cauHinhCu.chat_id || '',
+  };
+};
 
 /**
  * Kiểm tra người gọi có phải admin không (đọc admins/{uid} bằng Admin SDK).
@@ -64,26 +85,45 @@ async function assertAdminOrApprovedPartner(context) {
  * Send message to Telegram
  */
 async function sendTelegramMessage(message) {
-  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  // Đọc cấu hình tại thời điểm gửi, không dùng biến đọc sẵn ở đầu file.
+  const { token, chatId } = layCauHinhTelegram();
+
+  if (!token || !chatId) {
+    throw new Error(
+      'Chưa cấu hình TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID. Đặt bằng: firebase functions:secrets:set TELEGRAM_BOT_TOKEN'
+    );
+  }
+
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
   try {
     await axios.post(url, {
-      chat_id: TELEGRAM_CHAT_ID,
+      chat_id: chatId,
       text: message,
       parse_mode: 'HTML'
     });
     console.log('Telegram notification sent successfully');
   } catch (error) {
-    console.error('Error sending Telegram notification:', error.message);
-    throw error;
+    // Không in error.message thô: khi Telegram trả lỗi, axios đưa cả URL vào
+    // thông điệp — mà URL đó có chứa token bot, sẽ nằm lại trong log.
+    const maLoi = error.response?.status;
+    const moTa = error.response?.data?.description;
+    console.error(
+      `Error sending Telegram notification: HTTP ${maLoi || '?'}${moTa ? ' - ' + moTa : ''}`
+    );
+    throw new Error(`Telegram trả lỗi ${maLoi || 'không rõ'}`);
   }
 }
 
 /**
  * Cloud Function V1: Triggered when a new training request is created
  */
-exports.notifyNewTrainingRequest = functions.firestore
-  .document('trainingRequests/{requestId}')
+exports.notifyNewTrainingRequest = functions
+  // Khai báo secret thì Firebase mới nạp chúng vào biến môi trường lúc hàm chạy.
+  // Thiếu dòng này là token đặt đúng nhưng hàm vẫn không thấy, và thông báo
+  // yêu cầu mới im lặng biến mất.
+  .runWith({ secrets: TEN_SECRET_TELEGRAM })
+  .firestore.document('trainingRequests/{requestId}')
   .onCreate(async (snapshot, context) => {
     const requestData = snapshot.data();
     const requestId = context.params.requestId;
@@ -151,7 +191,9 @@ exports.sendAppEmail = functions.https.onCall(async (data, context) => {
 /**
  * Cloud Function V1: Test Telegram notification
  */
-exports.testTelegramNotification = functions.https.onCall(async (data, context) => {
+exports.testTelegramNotification = functions
+  .runWith({ secrets: TEN_SECRET_TELEGRAM })
+  .https.onCall(async (data, context) => {
   // Chỉ admin: trước đây mọi tài khoản đã đăng nhập đều bơm được tin nhắn rác
   // vào Telegram của chủ hệ thống, không giới hạn số lần.
   await assertAdmin(context);

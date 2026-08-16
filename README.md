@@ -150,9 +150,14 @@ Cấp thêm tại Google Cloud Console → IAM & Admin → IAM → tìm service 
 |---|---|
 | Firebase Hosting Admin | hosting |
 | Firebase Rules Admin | `firestore.rules`, `storage.rules` |
+| **Firebase Storage Admin** | đọc bucket mặc định khi deploy `storage` |
 | Cloud Functions Admin | `functions/` |
 | Service Account User | bắt buộc kèm theo khi deploy functions |
 | Cloud Build Editor + Artifact Registry Writer | quá trình đóng gói functions |
+
+⚠️ **Firebase Storage Admin** khác với **Storage Admin**. Cái sau là của Cloud
+Storage và *không* đủ — thiếu đúng quyền `firebasestorage.defaultBucket.get`,
+lỗi hay gặp nhất khi dựng workflow này lần đầu.
 
 Đây là loại việc bấm tay 5 phút trên Console nhưng chặn toàn bộ đường deploy —
 nếu Actions báo đỏ ngay lần đầu, gần như chắc chắn là do đây.
