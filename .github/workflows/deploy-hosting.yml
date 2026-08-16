@@ -157,12 +157,28 @@ jobs:
       # Storage. Tách ra thì một quyền còn thiếu chỉ chặn đúng phần của nó.
       #
       # Target "main" trỏ site "antoan"; site atld-connect không bị đụng tới.
-      - name: Deploy hosting, firestore rules và functions
+      # Deploy phần quan trọng nhất TRƯỚC và tách riêng từng phần.
+      #
+      # Mỗi phần cần một bộ quyền khác nhau, và firebase CLI kiểm tra quyền
+      # NGAY TỪ ĐẦU cho mọi thứ có trong danh sách. Gộp chung thì một quyền còn
+      # thiếu ở phần phụ cũng chặn luôn phần chính. Tách ra thì trang web vẫn
+      # được cập nhật kể cả khi functions hay storage còn vướng quyền.
+      - name: Deploy hosting (trang web)
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
         run: |
           npx firebase-tools@14 deploy \
-            --only hosting:main,firestore:rules,functions \
+            --only hosting:main \
+            --project "$PROJECT_ID" \
+            --non-interactive \
+            --force
+
+      - name: Deploy firestore rules
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          npx firebase-tools@14 deploy \
+            --only firestore:rules \
             --project "$PROJECT_ID" \
             --non-interactive \
             --force
@@ -176,7 +192,20 @@ jobs:
                  --project "$PROJECT_ID" \
                  --non-interactive \
                  --force; then
-            echo "::error::Không deploy được storage.rules. Nếu log ghi 'firebasestorage.defaultBucket.get denied' thì khoá service account còn thiếu vai trò **Firebase Storage Admin** (khác với 'Storage Admin' của Cloud Storage). Cấp tại Google Cloud Console → IAM, rồi chạy lại. Các phần khác đã deploy xong ở bước trên."
+            echo "::error::Không deploy được storage.rules. Log ghi 'firebasestorage.defaultBucket.get denied' thì khoá thiếu vai trò **Cloud Storage for Firebase Admin** (khác với 'Storage Admin'). Hosting và firestore rules đã deploy xong ở bước trên."
+            exit 1
+          fi
+
+      - name: Deploy functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          if ! npx firebase-tools@14 deploy \
+                 --only functions \
+                 --project "$PROJECT_ID" \
+                 --non-interactive \
+                 --force; then
+            echo "::error::Không deploy được functions. Log ghi 'firebaseextensions.googleapis.com ... 403' thì khoá thiếu vai trò **Firebase Extensions Viewer** — firebase CLI liệt kê tiện ích đang cài để cảnh báo xung đột trước khi deploy functions. Hosting và rules đã deploy xong ở các bước trên."
             exit 1
           fi
 

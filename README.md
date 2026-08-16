@@ -150,14 +150,28 @@ Cấp thêm tại Google Cloud Console → IAM & Admin → IAM → tìm service 
 |---|---|
 | Firebase Hosting Admin | hosting |
 | Firebase Rules Admin | `firestore.rules`, `storage.rules` |
-| **Firebase Storage Admin** | đọc bucket mặc định khi deploy `storage` |
+| **Cloud Storage for Firebase Admin** | đọc bucket mặc định khi deploy `storage` |
 | Cloud Functions Admin | `functions/` |
 | Service Account User | bắt buộc kèm theo khi deploy functions |
 | Cloud Build Editor + Artifact Registry Writer | quá trình đóng gói functions |
+| **Firebase Extensions Viewer** | CLI liệt kê tiện ích đang cài trước khi deploy functions |
 
-⚠️ **Firebase Storage Admin** khác với **Storage Admin**. Cái sau là của Cloud
-Storage và *không* đủ — thiếu đúng quyền `firebasestorage.defaultBucket.get`,
-lỗi hay gặp nhất khi dựng workflow này lần đầu.
+**Muốn cấp một lần cho xong:** vai trò **Firebase Admin** (`roles/firebase.admin`)
+bao trọn nhóm Firebase ở trên. Vẫn cần thêm Cloud Functions Admin, Service
+Account User, Cloud Build Editor và Artifact Registry Writer vì chúng thuộc
+Google Cloud chứ không thuộc Firebase.
+
+⚠️ Hai cặp tên dễ nhầm:
+
+- **Cloud Storage for Firebase Admin** ≠ **Storage Admin**. Cái sau là của Cloud
+  Storage và *không* đủ — thiếu đúng quyền `firebasestorage.defaultBucket.get`.
+- Thiếu **Firebase Extensions Viewer** cho lỗi `firebaseextensions.googleapis.com
+  ... 403` khi deploy functions, dù bản thân functions chẳng dùng tiện ích nào.
+
+Workflow tách deploy thành **bốn bước riêng** (hosting → firestore rules →
+storage → functions) đúng vì lý do này: mỗi phần cần một bộ quyền khác nhau, và
+firebase CLI kiểm tra quyền ngay từ đầu cho mọi thứ có trong danh sách. Tách ra
+thì một quyền còn thiếu ở phần phụ không chặn được phần chính.
 
 Đây là loại việc bấm tay 5 phút trên Console nhưng chặn toàn bộ đường deploy —
 nếu Actions báo đỏ ngay lần đầu, gần như chắc chắn là do đây.
