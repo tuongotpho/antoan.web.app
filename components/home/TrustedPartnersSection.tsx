@@ -1,18 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../services/firebaseConfig';
 import { TrustedPartner, PartnerProfile, partnerProfileToTrustedPartner } from '../../types';
 import TrustedPartnerCard from '../TrustedPartnerCard';
 import TrustedPartnerInfoModal from '../TrustedPartnerInfoModal';
+import { AppContext } from '../../App';
 
 const TrustedPartnersSection: React.FC = () => {
     const navigate = useNavigate();
+    const { user, loadingAuth } = useContext(AppContext);
     const [trustedPartners, setTrustedPartners] = useState<TrustedPartner[]>([]);
     const [selectedPartner, setSelectedPartner] = useState<TrustedPartner | null>(null);
 
-    // Fetch featured trusted partners from partners collection
+    // Lấy danh sách đối tác nổi bật.
+    //
+    // PHẢI chờ Firebase khôi phục xong phiên đăng nhập rồi mới truy vấn.
+    // Trước đây khối này truy vấn ngay lúc trang dựng, mà lúc đó người dùng vẫn
+    // đang là "chưa đăng nhập" nên rules từ chối — và vì danh sách phụ thuộc
+    // rỗng, nó không bao giờ thử lại. Kết quả: người ĐÃ đăng nhập vẫn thấy dòng
+    // "Đang cập nhật đối tác" mãi mãi.
     useEffect(() => {
+        // Đang khôi phục phiên thì chưa tới lượt
+        if (loadingAuth) return;
+
+        // Chưa đăng nhập thì rules chặn sẵn, khỏi gọi cho tốn lượt đọc
+        if (!user) {
+            setTrustedPartners([]);
+            return;
+        }
+
         const partnersCollection = collection(db, 'partners');
         // Remove orderBy to avoid composite index requirement
         // We'll sort in JavaScript and limit after sorting
@@ -66,7 +83,8 @@ const TrustedPartnersSection: React.FC = () => {
         );
 
         return () => unsubscribe();
-    }, []);
+        // Chạy lại khi phiên đăng nhập sẵn sàng hoặc khi đổi tài khoản
+    }, [user, loadingAuth]);
 
     return (
         <>

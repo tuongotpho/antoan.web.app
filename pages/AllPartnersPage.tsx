@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
@@ -6,9 +6,11 @@ import { TrustedPartner, PartnerProfile, partnerProfileToTrustedPartner } from '
 import TrustedPartnerCard from '../components/TrustedPartnerCard';
 import TrustedPartnerInfoModal from '../components/TrustedPartnerInfoModal';
 import SEOHead from '../components/SEOHead';
+import { AppContext } from '../App';
 
 const AllPartnersPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, loadingAuth } = useContext(AppContext);
   const [partners, setPartners] = useState<TrustedPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,8 +19,31 @@ const AllPartnersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>('all');
 
+  // PHẢI chờ Firebase khôi phục xong phiên đăng nhập rồi mới truy vấn.
+  //
+  // Trước đây trang truy vấn ngay lúc vừa dựng, mà lúc đó người dùng vẫn đang
+  // là "chưa đăng nhập" nên rules từ chối — và vì danh sách phụ thuộc rỗng, nó
+  // không bao giờ thử lại. Kết quả: người ĐÃ đăng nhập vẫn thấy màn hình
+  // "Đăng nhập để xem danh sách đối tác", bấm gì cũng không đổi.
   useEffect(() => {
     setError('');
+
+    // Đang khôi phục phiên: giữ màn hình chờ, chưa kết luận gì
+    if (loadingAuth) {
+      setLoading(true);
+      setCanDangNhap(false);
+      return;
+    }
+
+    // Chưa đăng nhập: rules chặn sẵn, hiện luôn màn hình mời đăng nhập
+    if (!user) {
+      setLoading(false);
+      setCanDangNhap(true);
+      setPartners([]);
+      return;
+    }
+
+    setCanDangNhap(false);
     setLoading(true);
 
     const partnersCollection = collection(db, 'partners');
@@ -67,7 +92,8 @@ const AllPartnersPage: React.FC = () => {
     );
 
     return () => unsubscribe();
-  }, []);
+    // Chạy lại khi phiên đăng nhập sẵn sàng hoặc khi đổi tài khoản
+  }, [user, loadingAuth]);
 
   // Get unique specializations for filtering
   const allSpecializations = Array.from(
