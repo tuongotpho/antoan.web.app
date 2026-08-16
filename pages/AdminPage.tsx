@@ -12,7 +12,9 @@ const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const { user, isAdmin, loadingAuth, onLoginRequired } = useContext(AppContext);
 
-  const { partners, requests, loading, loadError } = useAdminData();
+  // Truyền user vào: hook phải chờ Firebase khôi phục xong phiên đăng nhập rồi
+  // mới truy vấn, nếu không sẽ bị rules từ chối và không thử lại lần nào nữa.
+  const { partners, requests, loading, loadError } = useAdminData(user);
   const {
     actionError,
     setActionError,
@@ -85,7 +87,14 @@ const AdminPage: React.FC = () => {
   }
 
   if (loading) return <div className="text-center p-10">Đang tải dữ liệu...</div>;
-  if (loadError) return <div className="text-center p-10 text-red-500">{loadError}</div>;
+
+  // KHÔNG thoát sớm khi có lỗi tải dữ liệu.
+  //
+  // Trước đây một lỗi ở đây là cả trang chỉ còn đúng dòng chữ đỏ: không tab
+  // nào được vẽ ra, nên không vào được mục Quản lý Blog hay SEO — dù hai mục
+  // đó chẳng liên quan gì tới danh sách đối tác hay yêu cầu.
+  //
+  // Nay báo lỗi bằng một dải cảnh báo phía trên, phần còn lại vẫn dùng được.
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -131,6 +140,19 @@ const AdminPage: React.FC = () => {
           </button>
         </nav>
       </div>
+
+      {loadError && (
+        <div
+          className="bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-4 rounded-md mb-6"
+          role="alert"
+        >
+          <strong className="font-bold">Không tải được một phần dữ liệu</strong>
+          <p className="block sm:inline mt-1 whitespace-pre-wrap">{loadError}</p>
+          <p className="mt-2 text-sm">
+            Các mục khác của trang quản trị vẫn dùng được bình thường.
+          </p>
+        </div>
+      )}
 
       {actionError && (
         <div
