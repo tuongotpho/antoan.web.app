@@ -126,9 +126,9 @@ const PartnerTable: React.FC<PartnerTableProps> = ({
                     </>
                   )}
                   {viewType === 'managed' && onDelete && (
-                    {/* Xoá hồ sơ đối tác là xoá vĩnh viễn, không hoàn tác. */}
                     <button
                       onClick={(e) => {
+                        // Xoá hồ sơ đối tác là xoá vĩnh viễn, không hoàn tác.
                         e.stopPropagation(); // Ngăn sự kiện click của hàng
                         const ten =
                           partner.businessName || partner.taxId || partner.email || 'không rõ tên';
