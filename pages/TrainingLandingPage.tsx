@@ -456,7 +456,17 @@ const TrainingLandingPage: React.FC = () => {
   if (!data) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-red-600">Không tìm thấy trang</h1>
+        {/* Thẻ SEO của trang nằm dưới phần hiển thị chính, mà nhánh này thoát
+            trước — nên địa chỉ lĩnh vực không hợp lệ sẽ mang tiêu đề của trang
+            vừa xem. */}
+        <SEOHead
+          title="Không tìm thấy khoá huấn luyện | SafetyConnect"
+          description="Lĩnh vực huấn luyện này không có trên hệ thống."
+        />
+        <h1 className="text-3xl font-bold text-red-600">Không tìm thấy khoá huấn luyện</h1>
+        <p className="mt-3 text-gray-600">
+          Lĩnh vực này không có trên hệ thống. Xem các lĩnh vực đang có ở trang chủ.
+        </p>
         <button onClick={() => navigate('/')} className="mt-4 text-primary hover:underline">
           ← Quay về trang chủ
         </button>

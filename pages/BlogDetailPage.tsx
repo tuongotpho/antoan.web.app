@@ -201,10 +201,19 @@ const BlogDetailPage: React.FC = () => {
   if (error || !post) {
     return (
       <div className="container mx-auto px-4 py-12">
+        {/* Thẻ SEO của bài viết nằm dưới phần hiển thị chính, mà nhánh này
+            thoát trước — nên người mở link một bài đã xoá sẽ thấy tiêu đề tab
+            của trang vừa xem, không hiểu chuyện gì. */}
+        <SEOHead
+          title="Không tìm thấy bài viết | SafetyConnect"
+          description="Bài viết này không tồn tại hoặc đã được gỡ."
+        />
         <div className="max-w-2xl mx-auto text-center bg-white rounded-lg shadow-lg p-12">
           <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Lỗi</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Không tìm thấy bài viết</h2>
+          <p className="text-gray-600 mb-6">
+            {error || 'Bài viết này không tồn tại hoặc đã được gỡ khỏi trang.'}
+          </p>
           <button
             onClick={() => navigate('/blog')}
             className="bg-gradient-to-r from-primary to-orange-500 text-white px-6 py-3 rounded-full hover:shadow-lg transition-all"

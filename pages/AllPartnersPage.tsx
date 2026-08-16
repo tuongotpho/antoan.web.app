@@ -102,6 +102,16 @@ const AllPartnersPage: React.FC = () => {
   if (canDangNhap) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        {/* Phải đặt thẻ SEO ở CẢ nhánh này. Thẻ SEO của trang nằm mãi dưới
+            phần hiển thị chính, mà khách chưa đăng nhập thì thoát ở đây trước
+            — nên tiêu đề tab giữ nguyên của trang vừa xem, người dùng mở
+            /partners lại thấy đề "Yêu Cầu Huấn Luyện". Đây là trạng thái
+            thường trực với mọi khách vãng lai, không phải trường hợp hiếm. */}
+        <SEOHead
+          title="Đối Tác Đào Tạo An Toàn Lao Động | SafetyConnect"
+          description="Danh sách các đơn vị đào tạo an toàn lao động đã được xác minh. Đăng nhập để xem thông tin chi tiết và liên hệ."
+          url="https://antoan.web.app/partners"
+        />
         <div className="max-w-lg w-full bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
           <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
             <i className="fas fa-user-group text-2xl text-primary"></i>
