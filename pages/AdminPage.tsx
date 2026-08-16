@@ -5,6 +5,7 @@ import { useAdminActions } from '../hooks/useAdminActions';
 import DashboardTab from '../components/admin/DashboardTab';
 import SeoTab from '../components/admin/SeoTab';
 import BlogManagement from '../components/BlogManagement';
+import SEOHead from '../components/SEOHead';
 
 type AdminTab = 'dashboard' | 'blog' | 'seo';
 
@@ -98,6 +99,12 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
+      {/* Khu vực riêng tư: đặt tiêu đề riêng và chặn lập chỉ mục. */}
+      <SEOHead
+        title="Bảng điều khiển Quản trị | SafetyConnect"
+        description="Khu vực quản trị nội bộ."
+        noindex
+      />
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-neutral-dark mb-2">
           <i className="fas fa-tachometer-alt mr-3"></i>Bảng điều khiển Quản trị

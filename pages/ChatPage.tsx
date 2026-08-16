@@ -5,6 +5,7 @@ import ChatList from '../components/ChatList';
 import ChatWindow from '../components/ChatWindow';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { AppContext } from '../App';
+import SEOHead from '../components/SEOHead';
 
 const ChatPage: React.FC = () => {
   const { user, isAdmin, partnerStatus, onLoginRequired } = useContext(AppContext);
@@ -78,6 +79,14 @@ const ChatPage: React.FC = () => {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-12">
+        {/* Đặt thẻ SEO ở CẢ nhánh này. Thẻ ở phần hiển thị chính nằm mãi dưới,
+            mà khách chưa đăng nhập thì thoát ở đây trước — nên trang giữ nguyên
+            tiêu đề của trang vừa xem và vẫn cho phép lập chỉ mục. */}
+        <SEOHead
+          title="Tin nhắn | SafetyConnect"
+          description="Trao đổi giữa doanh nghiệp và đơn vị đào tạo."
+          noindex
+        />
         <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
           <i className="fas fa-lock text-5xl text-gray-400 mb-4"></i>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Đăng nhập để tiếp tục</h2>
@@ -103,6 +112,14 @@ const ChatPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 h-full flex flex-col">
+      {/* Khu vực riêng tư: đặt tiêu đề riêng cho dễ nhận ra khi mở nhiều tab,
+          và chặn công cụ tìm kiếm lập chỉ mục. Trước đây trang này giữ nguyên
+          tiêu đề mặc định của cả website. */}
+      <SEOHead
+        title="Tin nhắn | SafetyConnect"
+        description="Trao đổi giữa doanh nghiệp và đơn vị đào tạo."
+        noindex
+      />
       <div className="mb-6 flex-shrink-0">
         <h1 className="text-3xl font-bold text-gray-800">
           <i className="fas fa-comments text-primary mr-3"></i>

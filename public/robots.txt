@@ -30,20 +30,29 @@ Allow: /blog/
 Allow: /training/
 Disallow: /admin
 
-# Standard Search Engines
+# Cac cong cu tim kiem thong thuong (Google, Bing...)
 User-agent: *
 Allow: /
-# Disallow admin and private areas
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /settings
-Disallow: /api/
 
-# Allow important paths for SEO
+# Khu vuc rieng tu, khong cho lap chi muc
+#
+# /chat truoc day chi bi chan voi cac bot AI o phia tren, con Googlebot thi
+# khong - nen Google van co the dua trang tin nhan vao ket qua tim kiem.
+#
+# /partners can dang nhap moi xem duoc, bot chi thay man hinh moi dang nhap.
+#
+# Da bo /dashboard, /settings va /api/ vi ba duong dan nay khong ton tai trong
+# ung dung - liet ke cho khong co chi lam file nay kho doc.
+Disallow: /admin
+Disallow: /chat
+Disallow: /partners
+
+# Cac duong dan quan trong cho SEO
 Allow: /blog
 Allow: /blog/*
-Allow: /training
 Allow: /training/*
+Allow: /documents
+Allow: /requests
 
 # Sitemap location
 Sitemap: https://antoan.web.app/sitemap.xml

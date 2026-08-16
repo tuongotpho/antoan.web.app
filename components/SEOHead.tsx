@@ -12,6 +12,14 @@ interface SEOHeadProps {
   modifiedTime?: string;
   articleSection?: string;
   schema?: any; // Thêm Schema JSON-LD tùy chọn
+  /**
+   * Chặn công cụ tìm kiếm đưa trang này vào kết quả.
+   *
+   * Dùng cho khu vực riêng tư (quản trị, tin nhắn). robots.txt cũng chặn,
+   * nhưng đó chỉ là lời đề nghị ở mức thư mục — thẻ này nằm ngay trong trang
+   * nên chắc chắn hơn, và vẫn có tác dụng nếu ai đó chia sẻ đường dẫn ra ngoài.
+   */
+  noindex?: boolean;
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
@@ -26,10 +34,16 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   modifiedTime,
   articleSection,
   schema,
+  noindex = false,
 }) => {
   useEffect(() => {
     // Update title
     document.title = title;
+
+    // Chặn hoặc cho phép lập chỉ mục. Phải đặt lại ở CẢ hai chiều: nếu chỉ đặt
+    // khi noindex bật, thì sau khi rời trang riêng tư sang trang công khai, thẻ
+    // chặn vẫn còn lại và trang công khai bị ẩn khỏi kết quả tìm kiếm.
+    updateMetaTag('name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow');
 
     // Update or create meta description
     updateMetaTag('name', 'description', description);
@@ -112,6 +126,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     modifiedTime,
     articleSection,
     schema,
+    noindex,
   ]);
 
   return null;
