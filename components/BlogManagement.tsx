@@ -20,6 +20,7 @@ import {
 import { BlogPost } from '../types';
 import LoadingSpinner from './LoadingSpinner';
 import AIBlogWriter from './AIBlogWriter';
+import { lamSachTenFile } from '../utils/fileUpload';
 
 interface BlogManagementProps {
   user: User;
@@ -130,7 +131,12 @@ const BlogManagement: React.FC<BlogManagementProps> = ({ user }) => {
   const uploadImage = async (): Promise<string> => {
     if (!coverImageFile) return coverImageUrl;
 
-    const fileName = `blog-covers/${Date.now()}_${coverImageFile.name}`;
+    // Làm sạch tên file trước khi ghép vào đường dẫn. Ảnh bìa thường được đặt
+    // tên tiếng Việt có dấu, có khoảng trắng, đôi khi cả dấu # hoặc ?. Tên chứa
+    // dấu gạch chéo còn sinh thêm cấp thư mục, mà storage.rules chỉ khớp đúng
+    // blog-covers/{imageId} — lệch một cấp là rơi vào từ chối mặc định và ảnh
+    // không tải lên được.
+    const fileName = `blog-covers/${Date.now()}_${lamSachTenFile(coverImageFile.name)}`;
     const imageRef = storageRef(storage, fileName);
     await uploadBytes(imageRef, coverImageFile);
     return await getDownloadURL(imageRef);
@@ -207,7 +213,23 @@ const BlogManagement: React.FC<BlogManagementProps> = ({ user }) => {
       resetForm();
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Có lỗi xảy ra. Vui lòng thử lại.');
+
+      // Nói rõ nguyên nhân thay vì "Có lỗi xảy ra". Lỗi hay gặp nhất ở đây là
+      // thiếu quyền quản trị: rules yêu cầu tài khoản phải có trong collection
+      // admins mới được tạo bài. Đăng nhập bằng một tài khoản khác là bị chặn,
+      // mà thông báo chung chung thì không ai đoán ra.
+      const ma = (error as { code?: string })?.code || '';
+      const loiQuyen = /permission-denied|unauthorized|storage\/unauthorized/i.test(ma);
+
+      if (loiQuyen) {
+        alert(
+          'Tài khoản đang đăng nhập không có quyền quản trị nên không lưu được bài viết.\n\n' +
+            'Hãy đăng nhập bằng tài khoản quản trị, hoặc nhờ người phụ trách cấp quyền cho tài khoản này.'
+        );
+      } else {
+        const moTa = (error as { message?: string })?.message || '';
+        alert('Không lưu được bài viết. Vui lòng thử lại.' + (moTa ? `\n\nChi tiết: ${moTa}` : ''));
+      }
     } finally {
       setUploading(false);
     }
