@@ -143,7 +143,11 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                 {/* Chart and Info Panels */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
-                        <GrowthChart title="Tăng trưởng (6 tháng qua)" />
+                        <GrowthChart
+                            title="Tăng trưởng (6 tháng qua)"
+                            requests={requests}
+                            partners={partners}
+                        />
                     </div>
                     <div className="lg:col-span-1">
                         <InfoPanel
