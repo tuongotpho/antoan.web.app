@@ -39,12 +39,20 @@ const BASE_URL = 'https://antoan.web.app';
 const staticPages = [
   { url: '/', changefreq: 'daily', priority: '1.0' },
   { url: '/blog', changefreq: 'daily', priority: '0.9' },
-  { url: '/requests', changefreq: 'daily', priority: '0.8' },
   { url: '/documents', changefreq: 'weekly', priority: '0.8' },
-  // KHÔNG đưa /partners và /requests-chi-tiết vào đây: firestore.rules yêu cầu
-  // đăng nhập mới xem được danh sách đối tác, nên Googlebot (luôn ở trạng thái
-  // chưa đăng nhập) chỉ thấy màn hình mời đăng nhập. Đưa vào sitemap là tự mời
-  // Google index một trang trống. Khi nào mở cho khách xem được thì thêm lại.
+  // KHÔNG đưa /requests, /partners, /chat vào đây.
+  //
+  // Cả ba đều đang bị chặn trong public/robots.txt. Vừa bảo Google "đừng vào"
+  // ở robots.txt vừa khai trong sitemap là tự mâu thuẫn — Google Search Console
+  // báo lỗi "Indexed, though blocked by robots.txt". /requests trước đây nằm
+  // trong danh sách này chính là trường hợp đó.
+  //
+  // Riêng /partners: nay firestore.rules ĐÃ cho khách chưa đăng nhập xem được
+  // danh sách đối tác, nên về mặt kỹ thuật đưa vào sitemap là được. Nhưng
+  // robots.txt vẫn chặn, và chặn có lý do: trang đó hiện số điện thoại cùng
+  // email của các đơn vị đào tạo. Muốn Google index trang này thì phải bỏ dòng
+  // Disallow trong robots.txt TRƯỚC, rồi mới thêm vào đây — đó là quyết định
+  // kinh doanh, không phải quyết định kỹ thuật.
   // 8 trang giới thiệu lĩnh vực huấn luyện — khớp CoursesSection.tsx
   { url: '/training/an-toan-dien', changefreq: 'weekly', priority: '0.9' },
   { url: '/training/an-toan-xay-dung', changefreq: 'weekly', priority: '0.9' },

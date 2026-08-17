@@ -20,12 +20,12 @@ const SitemapGenerator: React.FC = () => {
   // TRƯỚC ĐÂY có /training, /about và /contact — cả ba đều KHÔNG tồn tại trong
   // router. Google truy vào sẽ bị đá về trang chủ, và coi đó là "404 giả".
   //
-  // KHÔNG đưa /partners vào: firestore.rules yêu cầu đăng nhập mới xem được
-  // danh sách đối tác, nên Googlebot chỉ thấy màn hình mời đăng nhập.
+  // KHÔNG đưa /requests, /partners, /chat vào: cả ba đang bị chặn trong
+  // public/robots.txt, khai trong sitemap là tự mâu thuẫn. Xem chú thích dài ở
+  // scripts/generateSitemap.js.
   const staticPages = [
     { url: '/', changefreq: 'daily', priority: '1.0' },
     { url: '/blog', changefreq: 'daily', priority: '0.9' },
-    { url: '/requests', changefreq: 'daily', priority: '0.8' },
     { url: '/documents', changefreq: 'weekly', priority: '0.8' },
     { url: '/training/an-toan-dien', changefreq: 'weekly', priority: '0.9' },
     { url: '/training/an-toan-xay-dung', changefreq: 'weekly', priority: '0.9' },

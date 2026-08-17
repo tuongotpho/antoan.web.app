@@ -668,10 +668,10 @@ exports.dynamicSitemap = functions.https.onRequest(async (req, res) => {
     const staticPages = [
       { url: '/', changefreq: 'daily', priority: '1.0' },
       { url: '/blog', changefreq: 'daily', priority: '0.9' },
-      { url: '/requests', changefreq: 'weekly', priority: '0.9' },
       { url: '/documents', changefreq: 'weekly', priority: '0.8' },
-      { url: '/partners', changefreq: 'weekly', priority: '0.8' },
-      { url: '/chat', changefreq: 'weekly', priority: '0.7' },
+      // Bỏ /requests, /partners, /chat — cả ba đang bị chặn trong robots.txt,
+      // khai trong sitemap là tự mâu thuẫn. Xem chú thích dài ở
+      // scripts/generateSitemap.js.
       { url: '/training/an-toan-dien', changefreq: 'monthly', priority: '0.8' },
       { url: '/training/an-toan-xay-dung', changefreq: 'monthly', priority: '0.8' },
       { url: '/training/an-toan-hoa-chat', changefreq: 'monthly', priority: '0.8' },

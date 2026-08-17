@@ -37,11 +37,9 @@ export const generateSitemap = async (): Promise<string> => {
     priority: 1.0,
   });
 
-  urls.push({
-    loc: `${SITE_URL}/requests`,
-    changefreq: 'hourly',
-    priority: 0.9,
-  });
+  // KHÔNG đưa /requests, /partners, /chat vào: cả ba đang bị chặn trong
+  // public/robots.txt, khai trong sitemap là tự mâu thuẫn. Xem chú thích dài ở
+  // scripts/generateSitemap.js.
 
   urls.push({
     loc: `${SITE_URL}/blog`,
