@@ -180,9 +180,12 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen((truoc) => !truoc)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-300"
-            aria-label="Toggle menu"
+            // Nhãn cũ là "Toggle menu" — tiếng Anh giữa một trang tiếng Việt,
+            // và không cho biết bấm vào sẽ mở hay đóng.
+            aria-label={mobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
               <svg
@@ -226,7 +229,15 @@ const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Mobile Menu Drawer */}
+      {/* Lúc đóng, ngăn kéo này KHÔNG biến mất khỏi trang — nó chỉ bị đẩy ra
+          ngoài mép phải để còn trượt vào cho mượt. Hệ quả đã đo được: cả 7 mục
+          bên trong vẫn bấm Tab tới được, nên người dùng bàn phím đang đi giữa
+          trang thì con trỏ bỗng rơi vào một menu vô hình ngoài màn hình, bấm
+          Tab tiếp mấy lần mới thoát ra.
+          `inert` khoá cả chuột lẫn bàn phím lẫn trình đọc màn hình khi đóng. */}
       <div
+        inert={!mobileMenuOpen}
+        aria-hidden={!mobileMenuOpen}
         className={`fixed top-0 right-0 h-full w-64 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}

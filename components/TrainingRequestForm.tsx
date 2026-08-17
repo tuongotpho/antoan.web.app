@@ -43,23 +43,29 @@ const TrainingRequestForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Cả ba hàm dưới đây đều cập nhật theo KIỂU HÀM: `setX(truoc => ...)` thay vì
+  // `setX([...trainingDetails, ...])`.
+  //
+  // Lý do rất cụ thể, đã đo được: bản cũ đọc giá trị `trainingDetails` của lượt
+  // vẽ hiện tại. Bấm "Thêm nội dung huấn luyện" hai lần thật nhanh thì cả hai
+  // lần cùng đọc một giá trị cũ như nhau, lần sau ghi đè lần trước — bấm hai
+  // lần mà chỉ ra một dòng. Cách viết mới luôn nhận danh sách mới nhất.
   const handleDetailChange = (
     index: number,
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    const updatedDetails = [...trainingDetails];
-    updatedDetails[index] = { ...updatedDetails[index], [name]: value };
-    setTrainingDetails(updatedDetails);
+    setTrainingDetails((truoc) =>
+      truoc.map((dong, i) => (i === index ? { ...dong, [name]: value } : dong))
+    );
   };
 
   const addDetail = () => {
-    setTrainingDetails([...trainingDetails, { ...initialDetailState }]);
+    setTrainingDetails((truoc) => [...truoc, { ...initialDetailState }]);
   };
 
   const removeDetail = (index: number) => {
-    const updatedDetails = trainingDetails.filter((_, i) => i !== index);
-    setTrainingDetails(updatedDetails);
+    setTrainingDetails((truoc) => truoc.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -260,9 +266,13 @@ const TrainingRequestForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => removeDetail(index)}
+                  // Nút chỉ có biểu tượng thì trình đọc màn hình không có gì để
+                  // đọc — người dùng chỉ nghe thấy "nút". Ghi rõ xoá dòng nào.
+                  aria-label={`Xoá nội dung huấn luyện số ${index + 1}`}
+                  title={`Xoá nội dung huấn luyện số ${index + 1}`}
                   className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                 >
-                  <i className="fas fa-times-circle"></i>
+                  <i className="fas fa-times-circle" aria-hidden="true"></i>
                 </button>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

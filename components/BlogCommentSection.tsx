@@ -145,8 +145,14 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
           newPreviewUrls.push(URL.createObjectURL(compressedBlob));
         }
 
-        setImageFiles([...imageFiles, ...compressedFiles]);
-        setImagePreviewUrls([...imagePreviewUrls, ...newPreviewUrls]);
+        // Cập nhật theo KIỂU HÀM, không đọc `imageFiles` của lượt vẽ cũ.
+        //
+        // Chỗ này nguy hiểm hơn chỗ khác vì nó nằm SAU `await` nén ảnh: giá trị
+        // `imageFiles` đọc được ở đây là giá trị lúc người dùng vừa bấm chọn,
+        // có thể đã cũ vài giây. Chọn thêm ảnh trong lúc đợt trước còn đang nén
+        // thì đợt sau ghi đè đợt trước — ảnh biến mất, không lỗi, không cảnh báo.
+        setImageFiles((truoc) => [...truoc, ...compressedFiles]);
+        setImagePreviewUrls((truoc) => [...truoc, ...newPreviewUrls]);
       } catch (error) {
         console.error('Error compressing images:', error);
         alert('Có lỗi khi nén ảnh. Vui lòng thử lại.');
@@ -157,11 +163,9 @@ const BlogCommentSection: React.FC<BlogCommentSectionProps> = ({ postId, current
   };
 
   const removeImage = (index: number) => {
-    const newFiles = imageFiles.filter((_, i) => i !== index);
-    const newUrls = imagePreviewUrls.filter((_, i) => i !== index);
     URL.revokeObjectURL(imagePreviewUrls[index]);
-    setImageFiles(newFiles);
-    setImagePreviewUrls(newUrls);
+    setImageFiles((truoc) => truoc.filter((_, i) => i !== index));
+    setImagePreviewUrls((truoc) => truoc.filter((_, i) => i !== index));
   };
 
   const uploadImages = async (): Promise<string[]> => {
