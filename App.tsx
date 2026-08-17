@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import {
   auth,
@@ -18,8 +18,21 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 import { useUnreadMessages } from './hooks/useUnreadMessages';
+import { lazyCoTaiLai } from './utils/lazyCoTaiLai';
 
-const LoginModal = lazy(() => import('./components/LoginModal'));
+// PHẢI dùng lazyCoTaiLai, không dùng React.lazy trần.
+//
+// Sau mỗi lần deploy, tên các mảnh mã đổi theo nội dung. Ai đang mở sẵn trang
+// từ trước sẽ đi tìm một file không còn tồn tại và nhận lỗi "Failed to fetch
+// dynamically imported module". lazyCoTaiLai bắt đúng lỗi đó rồi tải lại trang
+// một lần để lấy tên mảnh mới.
+//
+// 10 trang trong router.tsx đã dùng lazyCoTaiLai từ trước, RIÊNG dòng này bị bỏ
+// sót — và đã gây lỗi thật trên trang chạy: nhật ký trình duyệt ghi
+// "Failed to fetch dynamically imported module: .../LoginModal-DN4Q929W.js",
+// React Router phải bung màn hình lỗi. Đây lại là cửa vào của mọi thứ, nên bỏ
+// sót đúng chỗ đau nhất.
+const LoginModal = lazyCoTaiLai(() => import('./components/LoginModal'));
 
 export type PartnerStatus = 'pending' | 'approved' | 'rejected' | null;
 
