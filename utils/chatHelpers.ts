@@ -10,6 +10,18 @@ import {
 import { TrainingRequest, ChatMessage } from '../types';
 
 /**
+ * Mã giả dùng cho phía "khách" trong phòng chat giữa admin và đối tác.
+ *
+ * Phòng chat có hai phía cố định là client và partner. Khi admin trao đổi với
+ * đối tác, admin đóng vai phía client — nên clientId mang giá trị đặc biệt này
+ * thay vì một uid thật.
+ *
+ * Đặt thành hằng số vì hook đếm tin chưa đọc phải so đúng giá trị này để tách
+ * phòng của admin ra khỏi phòng của khách hàng thật.
+ */
+export const ID_ADMIN = 'admin';
+
+/**
  * Tạo hoặc lấy phòng chat giữa đối tác và admin cho một yêu cầu cụ thể
  * @param request - Yêu cầu đào tạo
  * @param partnerId - UID của đối tác
@@ -42,7 +54,7 @@ export const getOrCreateAdminPartnerChatRoom = async (
   // Client sẽ là "admin" (placeholder), partner là đối tác thật
   const roomData = {
     requestId: request.id,
-    clientId: 'admin', // Special ID cho admin
+    clientId: ID_ADMIN,
     clientName: 'Admin - SafetyConnect',
     clientEmail: 'admin@safetyconnect.vn',
     partnerId: partnerId,
