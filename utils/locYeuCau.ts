@@ -67,3 +67,32 @@ export const khopTuKhoa = (yeuCau: YeuCauRutGon, tuKhoa: string): boolean => {
 
   return diaDiem.includes(q) || moTa.includes(q) || loaiHinh;
 };
+
+interface BaiVietRutGon {
+  title?: string;
+  excerpt?: string;
+  tags?: string[];
+}
+
+/**
+ * Bài viết có khớp từ khoá tìm kiếm không.
+ *
+ * Cùng bài học với khopTuKhoa ở trên: gọi thẳng `post.title.toLowerCase()` thì
+ * chỉ cần MỘT bài thiếu trường là cả trang blog vỡ ngay khi người đọc gõ vào ô
+ * tìm kiếm — hỏng nguyên trang chứ không phải hỏng một thẻ bài.
+ *
+ * Bài viết tạo qua trang quản trị thì luôn đủ trường, nhưng bài nhập từ nơi
+ * khác hoặc thêm thẳng vào cơ sở dữ liệu thì không có gì bảo đảm.
+ */
+export const khopTuKhoaBaiViet = (bai: BaiVietRutGon, tuKhoa: string): boolean => {
+  const q = tuKhoa.trim().toLowerCase();
+  if (!q) return true;
+
+  const tieuDe = (bai?.title ?? '').toLowerCase();
+  const tomTat = (bai?.excerpt ?? '').toLowerCase();
+  const theTag = Array.isArray(bai?.tags)
+    ? bai.tags.some((t) => (t ?? '').toLowerCase().includes(q))
+    : false;
+
+  return tieuDe.includes(q) || tomTat.includes(q) || theTag;
+};

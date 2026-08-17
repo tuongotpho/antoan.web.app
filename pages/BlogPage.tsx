@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cuonLenDau } from '../utils/cuonTrang';
+import { khopTuKhoaBaiViet } from '../utils/locYeuCau';
 import { useNavigate } from 'react-router-dom';
 import {
   db,
@@ -66,13 +67,7 @@ const BlogPage: React.FC = () => {
 
     // Filter by search query
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (post) =>
-          post.title.toLowerCase().includes(query) ||
-          post.excerpt.toLowerCase().includes(query) ||
-          post.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
+      filtered = filtered.filter((post) => khopTuKhoaBaiViet(post, searchQuery));
     }
 
     setFilteredPosts(filtered);

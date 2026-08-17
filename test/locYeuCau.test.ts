@@ -4,6 +4,7 @@ import {
   lotQuaLocSoHocVien,
   khopTuKhoa,
   KHONG_GIOI_HAN_HOC_VIEN,
+  khopTuKhoaBaiViet,
 } from '../utils/locYeuCau';
 
 describe('tinhTongHocVien', () => {
@@ -80,5 +81,35 @@ describe('khopTuKhoa — không được vỡ vì thiếu trường', () => {
 
   it('không phân biệt hoa thường', () => {
     expect(khopTuKhoa({ location: 'Hà Nội' }, 'HÀ NỘI')).toBe(true);
+  });
+});
+
+describe('khopTuKhoaBaiViet — trang blog không được vỡ vì thiếu trường', () => {
+  it('không vỡ khi bài viết thiếu tiêu đề, tóm tắt hoặc thẻ', () => {
+    expect(() => khopTuKhoaBaiViet({}, 'an toàn')).not.toThrow();
+    expect(() => khopTuKhoaBaiViet({ tags: undefined }, 'an toàn')).not.toThrow();
+    expect(() => khopTuKhoaBaiViet({ tags: [null as never] }, 'an toàn')).not.toThrow();
+    expect(khopTuKhoaBaiViet({}, 'an toàn')).toBe(false);
+  });
+
+  it('tìm theo tiêu đề', () => {
+    expect(khopTuKhoaBaiViet({ title: 'An toàn điện trong nhà máy' }, 'nhà máy')).toBe(true);
+  });
+
+  it('tìm theo tóm tắt', () => {
+    expect(khopTuKhoaBaiViet({ excerpt: 'Hướng dẫn theo Nghị định 44' }, 'nghị định')).toBe(true);
+  });
+
+  it('tìm theo thẻ', () => {
+    expect(khopTuKhoaBaiViet({ tags: ['pccc', 'an toàn lao động'] }, 'pccc')).toBe(true);
+  });
+
+  it('từ khoá rỗng thì mọi bài đều lọt', () => {
+    expect(khopTuKhoaBaiViet({}, '')).toBe(true);
+    expect(khopTuKhoaBaiViet({}, '   ')).toBe(true);
+  });
+
+  it('không phân biệt hoa thường', () => {
+    expect(khopTuKhoaBaiViet({ title: 'An Toàn Điện' }, 'AN TOÀN')).toBe(true);
   });
 });
