@@ -20,9 +20,13 @@ const CourseCard: React.FC<{
             >
                 <i className={`fas ${icon} text-4xl text-white`}></i>
             </div>
-            <h4 className="font-bold text-neutral-dark group-hover:text-white transition-colors text-lg mb-2">
+            {/* h3 chứ không phải h4: mục cha của khối này là h2 "Các khóa đào
+                tạo phổ biến". Nhảy thẳng từ h2 xuống h4 làm mục lục của trang
+                khuyết một cấp — người dùng trình đọc màn hình thường nhảy giữa
+                các tiêu đề để lướt trang, gặp chỗ khuyết là mất mạch. */}
+            <h3 className="font-bold text-neutral-dark group-hover:text-white transition-colors text-lg mb-2">
                 {title}
-            </h4>
+            </h3>
             <p className="text-xs text-gray-500 group-hover:text-white/90 mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                 <i className="fas fa-arrow-right mr-1"></i>Xem chi tiết
             </p>

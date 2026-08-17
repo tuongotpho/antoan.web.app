@@ -210,7 +210,9 @@ const BlogDetailPage: React.FC = () => {
         />
         <div className="max-w-2xl mx-auto text-center bg-white rounded-lg shadow-lg p-12">
           <i className="fas fa-exclamation-triangle text-5xl text-red-500 mb-4"></i>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Không tìm thấy bài viết</h2>
+          {/* h1: nhánh này là toàn bộ nội dung trang khi bài viết không tồn
+              tại. Cùng lý do với nhánh chưa đăng nhập ở ChatPage. */}
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Không tìm thấy bài viết</h1>
           <p className="text-gray-600 mb-6">
             {error || 'Bài viết này không tồn tại hoặc đã được gỡ khỏi trang.'}
           </p>

@@ -313,6 +313,9 @@ const DocumentsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Ẩn khỏi mắt nhưng giữ trong mục lục trang: thẻ tài liệu dùng h3, trên
+          nó chỉ có h1 tên trang, nhảy h1 -> h3 làm khuyết một cấp. */}
+      <h2 className="sr-only">Danh sách tài liệu</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {loading ? (
           <p className="text-center text-gray-500 col-span-full">Đang tải tài liệu...</p>

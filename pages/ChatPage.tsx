@@ -89,7 +89,10 @@ const ChatPage: React.FC = () => {
         />
         <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
           <i className="fas fa-lock text-5xl text-gray-400 mb-4"></i>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Đăng nhập để tiếp tục</h2>
+          {/* h1 chứ không phải h2: nhánh này là toàn bộ nội dung trang đối với
+              người chưa đăng nhập. Để h2 thì trang không có tiêu đề cấp một
+              nào — trình đọc màn hình không xác định được trang này nói về gì. */}
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Đăng nhập để tiếp tục</h1>
           <p className="text-gray-600 mb-6">Bạn cần đăng nhập để sử dụng chức năng chat.</p>
           <button
             onClick={onLoginRequired}

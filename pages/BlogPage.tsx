@@ -188,6 +188,14 @@ const BlogPage: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* Tiêu đề này CỐ Ý ẩn khỏi mắt (sr-only) nhưng vẫn có trong mục lục
+                trang. Thẻ bài viết dùng h3, mà trên nó chỉ có h1 tên trang —
+                nhảy từ h1 thẳng xuống h3 làm mục lục khuyết một cấp, người dùng
+                trình đọc màn hình lướt theo tiêu đề sẽ mất mạch.
+                Đặt h2 ở đây thay vì đổi BlogCard thành h2, vì cùng thẻ đó còn
+                dùng ở mục "Bài viết liên quan" bên trang chi tiết — chỗ ấy đã có
+                sẵn một h2 bao ngoài rồi. */}
+            <h2 className="sr-only">Danh sách bài viết</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
               {currentPosts.map((post) => (
                 <BlogCard key={post.id} post={post} />

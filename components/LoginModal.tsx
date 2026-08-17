@@ -231,11 +231,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             <p className="text-center text-neutral-dark mb-6 text-sm">
               Truy cập để xem thông tin chi tiết và báo giá các yêu cầu.
             </p>
+            {/* autoComplete là thứ báo cho trình duyệt và trình quản lý mật
+                khẩu biết ô này đựng gì. Thiếu nó thì phần mềm quản lý mật khẩu
+                thường không nhận ra để điền hộ, cũng không hỏi "có lưu mật khẩu
+                không" sau khi đăng nhập — người dùng phải gõ tay mỗi lần.
+                Ô mật khẩu ở màn ĐĂNG NHẬP phải là current-password, còn ở màn
+                ĐĂNG KÝ phải là new-password; đặt sai thì trình quản lý mật khẩu
+                điền mật khẩu cũ vào ô tạo mật khẩu mới. */}
             <form onSubmit={handleAuthSubmit} className="space-y-4">
               <input
                 type="email"
                 placeholder="Email"
                 aria-label="Email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClasses}
@@ -246,6 +254,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   type="password"
                   placeholder="Mật khẩu"
                   aria-label="Mật khẩu"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={inputClasses}
@@ -317,6 +326,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   type="email"
                   placeholder="Email đăng nhập (*)"
                   aria-label="Email đăng nhập"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={inputClasses}
@@ -326,6 +336,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   type="password"
                   placeholder="Mật khẩu (*)"
                   aria-label="Mật khẩu"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={inputClasses}
@@ -337,6 +348,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 name="businessName"
                 placeholder="Tên doanh nghiệp (*)"
                 aria-label="Tên doanh nghiệp"
+                autoComplete="organization"
                 value={registerData.businessName}
                 onChange={handleRegisterChange}
                 className={inputClasses}
@@ -358,6 +370,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   name="address"
                   placeholder="Địa chỉ công ty (*)"
                   aria-label="Địa chỉ công ty"
+                  autoComplete="street-address"
                   value={registerData.address}
                   onChange={handleRegisterChange}
                   className={inputClasses}
@@ -368,6 +381,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                   name="phone"
                   placeholder="Số điện thoại (*)"
                   aria-label="Số điện thoại"
+                  autoComplete="tel"
                   value={registerData.phone}
                   onChange={handleRegisterChange}
                   className={inputClasses}
@@ -379,6 +393,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 name="website"
                 placeholder="Website (nếu có)"
                 aria-label="Website"
+                autoComplete="url"
                 value={registerData.website}
                 onChange={handleRegisterChange}
                 className={inputClasses}
@@ -482,6 +497,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                 type="email"
                 placeholder="Email"
                 aria-label="Email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClasses}

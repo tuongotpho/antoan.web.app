@@ -230,6 +230,7 @@ const TrainingRequestForm: React.FC = () => {
             name="clientName"
             placeholder="Tên người liên hệ (*)"
             aria-label="Tên người liên hệ"
+            autoComplete="name"
             value={formData.clientName}
             onChange={handleChange}
             className={inputClasses}
@@ -240,6 +241,7 @@ const TrainingRequestForm: React.FC = () => {
             name="clientEmail"
             placeholder="Email (*)"
             aria-label="Email"
+            autoComplete="email"
             value={formData.clientEmail}
             onChange={handleChange}
             className={inputClasses}
@@ -250,6 +252,7 @@ const TrainingRequestForm: React.FC = () => {
             name="clientPhone"
             placeholder="Số điện thoại (*)"
             aria-label="Số điện thoại"
+            autoComplete="tel"
             value={formData.clientPhone}
             onChange={handleChange}
             className={inputClasses}
