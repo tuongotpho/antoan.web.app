@@ -40,6 +40,29 @@ export const O_NHAP_CHU: (keyof DuLieuFormDoiTac)[] = [
   'logo',
 ];
 
+/**
+ * Dựng lệnh cập nhật cài đặt hiển thị của một đối tác (từ hộp Chi tiết Đối tác
+ * trong trang quản trị).
+ *
+ * Điểm mấu chốt: KHÔNG được để lọt giá trị `undefined`. Đã thử bằng chính SDK
+ * Firestore — `updateDoc` ném lỗi "Unsupported field value: undefined" và huỷ
+ * nguyên lệnh. Bản cũ viết `displayOrder: thuTu ? parseInt(thuTu) : undefined`,
+ * nên chỉ cần ô "Thứ tự hiển thị" để trống là cả lệnh lưu hỏng: hai ô gạt "đã
+ * xác minh" và "hiện trang chủ" vừa chỉnh cũng mất theo.
+ */
+export const dungCapNhatDoiTac = (
+  verified: boolean,
+  featured: boolean,
+  displayOrder: string
+) => {
+  const thuTu = parseInt(displayOrder, 10);
+  return {
+    verified,
+    featured,
+    ...(Number.isFinite(thuTu) ? { displayOrder: thuTu } : {}),
+  };
+};
+
 export const dungHoSoDoiTac = (duLieu: DuLieuFormDoiTac, maHoSo: string) => {
   const nam = parseInt(duLieu.establishedYear, 10);
   const thuTu = parseInt(duLieu.displayOrder, 10);

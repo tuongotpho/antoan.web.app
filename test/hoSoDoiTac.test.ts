@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { dungHoSoDoiTac, O_NHAP_CHU, DuLieuFormDoiTac } from '../utils/hoSoDoiTac';
+import {
+  dungHoSoDoiTac,
+  dungCapNhatDoiTac,
+  O_NHAP_CHU,
+  DuLieuFormDoiTac,
+} from '../utils/hoSoDoiTac';
 
 const mau: DuLieuFormDoiTac = {
   businessName: '  Trung tâm Huấn luyện An toàn Miền Bắc  ',
@@ -74,5 +79,36 @@ describe('dungHoSoDoiTac — không được đánh rơi ô nhập nào', () => 
     const tat = dungHoSoDoiTac({ ...mau, featured: false, verified: false }, 'ma-2');
     expect(tat.featured).toBe(false);
     expect(tat.verified).toBe(false);
+  });
+});
+
+describe('dungCapNhatDoiTac — không được để lọt undefined xuống Firestore', () => {
+  it('KHÔNG có trường nào mang giá trị undefined, kể cả khi bỏ trống thứ tự', () => {
+    // Đã thử bằng chính SDK: updateDoc({ displayOrder: undefined }) ném lỗi
+    // "Unsupported field value: undefined" và huỷ NGUYÊN lệnh. Nghĩa là ô
+    // "Thứ tự hiển thị" để trống thì hai ô gạt vừa chỉnh cũng không lưu được.
+    for (const thuTu of ['', '   ', 'abc']) {
+      const lenh = dungCapNhatDoiTac(true, false, thuTu) as Record<string, unknown>;
+      const coUndefined = Object.entries(lenh).filter(([, v]) => v === undefined);
+      expect(coUndefined, `thứ tự "${thuTu}" sinh ra undefined`).toEqual([]);
+      expect(lenh).not.toHaveProperty('displayOrder');
+    }
+  });
+
+  it('vẫn giữ đúng hai ô gạt khi bỏ trống thứ tự', () => {
+    expect(dungCapNhatDoiTac(true, false, '')).toEqual({ verified: true, featured: false });
+  });
+
+  it('đổi thứ tự sang số khi có nhập', () => {
+    expect(dungCapNhatDoiTac(false, true, '7')).toEqual({
+      verified: false,
+      featured: true,
+      displayOrder: 7,
+    });
+  });
+
+  it('nhận số 0 làm thứ tự hợp lệ, không coi là bỏ trống', () => {
+    // Bản cũ dùng `displayOrder ? ... : undefined` nên số 0 bị coi như trống.
+    expect(dungCapNhatDoiTac(true, true, '0')).toHaveProperty('displayOrder', 0);
   });
 });

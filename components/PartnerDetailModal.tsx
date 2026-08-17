@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { PartnerProfile } from '../types';
+import { useDongBangEsc } from '../hooks/useDongBangEsc';
+import { useKhoaConTroTrongHop } from '../hooks/useKhoaConTroTrongHop';
+import { dungCapNhatDoiTac } from '../utils/hoSoDoiTac';
 
 interface PartnerDetailModalProps {
   partner: PartnerProfile;
@@ -33,19 +36,21 @@ const PartnerDetailModal: React.FC<PartnerDetailModalProps> = ({
   onReject,
   onUpdate,
 }) => {
+  // Đây là modal DUY NHẤT còn thiếu phần này: 5 modal kia đều đã có Esc để
+  // đóng, khoá con trỏ bàn phím bên trong, và role="dialog".
+  useDongBangEsc(true, onClose);
+  const hopRef = useKhoaConTroTrongHop(true);
+
   const [verified, setVerified] = useState(partner.verified || false);
   const [featured, setFeatured] = useState(partner.featured || false);
   const [displayOrder, setDisplayOrder] = useState(partner.displayOrder?.toString() || '');
 
   const handleSaveSettings = () => {
-    if (onUpdate) {
-      const updates: Partial<PartnerProfile> = {
-        verified,
-        featured,
-        displayOrder: displayOrder ? parseInt(displayOrder) : undefined,
-      };
-      onUpdate(partner.uid, updates);
-    }
+    if (!onUpdate) return;
+
+    // Lệnh cập nhật dựng ở utils/hoSoDoiTac.ts để test canh được: nó phải
+    // KHÔNG chứa giá trị undefined nào, nếu không Firestore huỷ cả lệnh.
+    onUpdate(partner.uid, dungCapNhatDoiTac(verified, featured, displayOrder));
   };
 
   const isApproved = partner.status === 'approved';
@@ -56,13 +61,25 @@ const PartnerDetailModal: React.FC<PartnerDetailModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={hopRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tieu-de-chi-tiet-doi-tac"
         className="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4 border-b pb-3">
-          <h2 className="text-2xl font-bold text-primary">Chi tiết Đối tác</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <i className="fas fa-times text-2xl"></i>
+          <h2 id="tieu-de-chi-tiet-doi-tac" className="text-2xl font-bold text-primary">
+            Chi tiết Đối tác
+          </h2>
+          {/* Nút chỉ có biểu tượng dấu nhân thì trình đọc màn hình không có gì
+              để đọc. */}
+          <button
+            onClick={onClose}
+            aria-label="Đóng chi tiết đối tác"
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <i className="fas fa-times text-2xl" aria-hidden="true"></i>
           </button>
         </div>
 
