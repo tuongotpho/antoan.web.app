@@ -22,11 +22,9 @@
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@google/generative-ai": "^0.24.1",
     "firebase": "^12.5.0",
-    "html2canvas": "^1.4.1",
     "html2canvas-pro": "^2.0.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {
