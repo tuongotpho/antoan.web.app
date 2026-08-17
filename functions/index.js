@@ -800,7 +800,20 @@ exports.trainingMetaTags = functions.https.onRequest(async (req, res) => {
     }
   };
 
-  const data = trainingData[trainingType];
+  // PHẢI dùng hasOwnProperty, KHÔNG được viết thẳng `trainingData[trainingType]`.
+  //
+  // Đối tượng thường trong JavaScript mang sẵn một số tên có từ trước như
+  // `constructor`, `toString`, `valueOf`. Tra cứu bằng những tên đó KHÔNG trả
+  // về undefined mà trả về hàm dựng sẵn — tức lọt qua kiểm tra "không tìm
+  // thấy" bên dưới.
+  //
+  // Đã đo trên trang chạy thật: /training/constructor, /training/toString và
+  // /training/valueOf đều trả HTTP 200 với trang rỗng tiêu đề
+  // (`<title> | SafetyConnect</title>`) và ảnh og là chữ "undefined", trong khi
+  // /training/khong-co-that thì chuyển hướng đúng. Google có thể index những
+  // địa chỉ rác đó thành trang mỏng, hại xếp hạng.
+  const coThat = Object.prototype.hasOwnProperty.call(trainingData, trainingType);
+  const data = coThat ? trainingData[trainingType] : null;
 
   if (!data) {
     res.redirect(302, 'https://antoan.web.app/');

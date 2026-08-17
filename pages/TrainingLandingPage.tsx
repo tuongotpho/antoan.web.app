@@ -446,7 +446,18 @@ const TrainingLandingPage: React.FC = () => {
   const params = useParams<{ type: string }>();
   const trainingType = (params.type || '') as TrainingTypeKey;
 
-  const data = trainingData[trainingType];
+  // PHẢI dùng hasOwnProperty, KHÔNG được viết thẳng `trainingData[trainingType]`.
+  //
+  // Đối tượng thường trong JavaScript mang sẵn những tên có từ trước như
+  // `constructor`, `toString`, `valueOf`. Tra cứu bằng các tên đó không trả về
+  // undefined mà trả về hàm dựng sẵn, nên lọt qua nhánh "không tìm thấy" bên
+  // dưới rồi vỡ khi đọc data.title.
+  //
+  // Đã đo: mở /training/constructor thì trang VỠ, lưới chắn lỗi phải bung ra
+  // màn hình "Đã xảy ra lỗi", thay vì hiện "Không tìm thấy khoá huấn luyện".
+  const data = Object.prototype.hasOwnProperty.call(trainingData, trainingType)
+    ? trainingData[trainingType]
+    : undefined;
 
   useEffect(() => {
     // Scroll to top

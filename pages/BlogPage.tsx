@@ -183,7 +183,11 @@ const BlogPage: React.FC = () => {
         {currentPosts.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-lg">
             <i className="fas fa-search text-5xl text-gray-400 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">Không tìm thấy bài viết</h3>
+            {/* h2 chứ không phải h3. Nhánh này là nhánh KHÔNG CÓ KẾT QUẢ, nằm
+                song song với nhánh có kết quả — mà bên kia đã có h2 ẩn "Danh
+                sách bài viết". Để h3 ở đây thì lọc ra 0 bài là mục lục lại
+                khuyết một cấp, đúng lỗi vừa sửa nhưng ở nhánh còn lại. */}
+            <h2 className="text-xl font-semibold text-gray-700 mb-2">Không tìm thấy bài viết</h2>
             <p className="text-gray-500">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
           </div>
         ) : (
