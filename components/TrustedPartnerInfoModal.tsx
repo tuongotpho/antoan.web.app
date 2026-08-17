@@ -5,6 +5,8 @@ import {
   formatPhoneForTel,
   formatPhoneForDisplay,
 } from '../utils/validationHelpers';
+import { useDongBangEsc } from '../hooks/useDongBangEsc';
+import { useKhoaConTroTrongHop } from '../hooks/useKhoaConTroTrongHop';
 
 interface TrustedPartnerInfoModalProps {
   partner: TrustedPartner;
@@ -29,18 +31,17 @@ const TrustedPartnerInfoModal: React.FC<TrustedPartnerInfoModalProps> = ({
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="partner-modal-title"
     >
+      {/* role="dialog" chỉ đặt Ở ĐÂY, trên đúng hộp nội dung. Trước đây cả lớp
+          nền mờ bên ngoài cũng mang role="dialog", mà lớp nền lại bọc hộp bên
+          trong — trình đọc màn hình gặp hai hộp thoại lồng nhau. */}
       <div
         className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up"
         ref={hopRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Thông tin đối tác"
+        aria-labelledby="partner-modal-title"
         onClick={(e) => e.stopPropagation()}
-        role="document"
       >
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-primary to-orange-600 text-white p-6 rounded-t-2xl">

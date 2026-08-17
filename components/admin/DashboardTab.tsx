@@ -9,6 +9,7 @@ import PartnerTable from '../PartnerTable';
 import TrainingRequestCard from '../TrainingRequestCard';
 import PartnerDetailModal from '../PartnerDetailModal';
 import ViewersModal from '../ViewersModal';
+import ThemDoiTacForm from './ThemDoiTacForm';
 
 interface DashboardTabProps {
     partners: PartnerProfile[];
@@ -28,6 +29,7 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
     onUpdatePartner,
 }) => {
     const [selectedPartner, setSelectedPartner] = useState<PartnerProfile | null>(null);
+    const [hienFormThem, setHienFormThem] = useState(false);
     const [viewingPartners, setViewingPartners] = useState<PartnerProfile[] | null>(null);
 
     // Memoized calculations for the dashboard
@@ -181,9 +183,29 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
                 </section>
 
                 <section>
-                    <h2 className="text-2xl font-bold text-primary mb-4">
-                        Danh sách Đối tác ({managedPartners.length})
-                    </h2>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <h2 className="text-2xl font-bold text-primary">
+                            Danh sách Đối tác ({managedPartners.length})
+                        </h2>
+                        {/* Đặt giá trị tường minh, không dùng !hienFormThem: trước đây một
+                            nút toggle kiểu đó đứng cạnh lệnh dọn form nên hai lệnh gộp
+                            chung một lượt vẽ và triệt tiêu nhau — form bật lên rồi tắt
+                            ngay, nhìn như nút không ăn. */}
+                        <button
+                            onClick={() => setHienFormThem(hienFormThem ? false : true)}
+                            aria-expanded={hienFormThem}
+                            className="bg-primary text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2"
+                        >
+                            <i className={`fas ${hienFormThem ? 'fa-times' : 'fa-plus'}`}></i>
+                            {hienFormThem ? 'Đóng' : 'Thêm đối tác'}
+                        </button>
+                    </div>
+
+                    {hienFormThem && (
+                        <div className="mb-6">
+                            <ThemDoiTacForm />
+                        </div>
+                    )}
                     <PartnerTable
                         partners={managedPartners}
                         onDelete={onDeletePartner}

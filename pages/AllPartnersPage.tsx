@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
@@ -6,45 +6,32 @@ import { TrustedPartner, PartnerProfile, partnerProfileToTrustedPartner } from '
 import TrustedPartnerCard from '../components/TrustedPartnerCard';
 import TrustedPartnerInfoModal from '../components/TrustedPartnerInfoModal';
 import SEOHead from '../components/SEOHead';
-import { AppContext } from '../App';
 import { cuonLenDau } from '../utils/cuonTrang';
 
 const AllPartnersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loadingAuth } = useContext(AppContext);
   const [partners, setPartners] = useState<TrustedPartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [canDangNhap, setCanDangNhap] = useState(false);
+  // Firestore từ chối đọc bảng partners. Từ khi rules cho đọc công khai hồ sơ
+  // đã duyệt, trạng thái này chỉ còn xảy ra khi rules trên máy chủ là bản cũ.
+  const [loiPhanQuyen, setLoiPhanQuyen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<TrustedPartner | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>('all');
 
-  // PHẢI chờ Firebase khôi phục xong phiên đăng nhập rồi mới truy vấn.
+  // Trang này công khai, KHÔNG chờ đăng nhập nữa.
   //
-  // Trước đây trang truy vấn ngay lúc vừa dựng, mà lúc đó người dùng vẫn đang
-  // là "chưa đăng nhập" nên rules từ chối — và vì danh sách phụ thuộc rỗng, nó
-  // không bao giờ thử lại. Kết quả: người ĐÃ đăng nhập vẫn thấy màn hình
-  // "Đăng nhập để xem danh sách đối tác", bấm gì cũng không đổi.
+  // Trước đây phải đăng nhập mới xem được, vì rules khoá cả bảng partners. Nay
+  // rules cho đọc công khai hồ sơ có status == 'approved', nên khách vãng lai —
+  // tức đúng những người cần tìm đơn vị huấn luyện — thấy được danh sách ngay.
+  //
+  // Điều kiện where('status','==','approved') là BẮT BUỘC, không phải để lọc cho
+  // gọn: Firestore chỉ chấp nhận truy vấn khi chắc chắn MỌI bản ghi trả về đều
+  // qua được rules. Bỏ nó đi thì cả truy vấn bị từ chối.
   useEffect(() => {
     setError('');
-
-    // Đang khôi phục phiên: giữ màn hình chờ, chưa kết luận gì
-    if (loadingAuth) {
-      setLoading(true);
-      setCanDangNhap(false);
-      return;
-    }
-
-    // Chưa đăng nhập: rules chặn sẵn, hiện luôn màn hình mời đăng nhập
-    if (!user) {
-      setLoading(false);
-      setCanDangNhap(true);
-      setPartners([]);
-      return;
-    }
-
-    setCanDangNhap(false);
+    setLoiPhanQuyen(false);
     setLoading(true);
 
     const partnersCollection = collection(db, 'partners');
@@ -74,15 +61,14 @@ const AllPartnersPage: React.FC = () => {
         setLoading(false);
       },
       (err) => {
-        // permission-denied KHÔNG phải hỏng hóc mà là đúng thiết kế:
-        // firestore.rules yêu cầu đăng nhập mới đọc được bảng partners.
-        // Trước đây nhánh này ném thẳng câu lỗi kỹ thuật tiếng Anh
-        // "Missing or insufficient permissions" ra giữa một trang công khai.
+        // Từ khi rules mở cho đọc công khai hồ sơ đã duyệt, permission-denied ở
+        // đây là dấu hiệu rules trên máy chủ chưa được deploy — giữ lại nhánh
+        // riêng để báo cho đúng chứ không lẫn vào lỗi mạng.
         if (err?.code === 'permission-denied') {
-          console.warn(
-            'Danh sách đối tác chỉ hiển thị cho người đã đăng nhập (theo firestore.rules).'
+          console.error(
+            'Bị từ chối đọc bảng partners. Nhiều khả năng firestore.rules trên máy chủ vẫn là bản cũ.'
           );
-          setCanDangNhap(true);
+          setLoiPhanQuyen(true);
           setLoading(false);
           return;
         }
@@ -93,8 +79,7 @@ const AllPartnersPage: React.FC = () => {
     );
 
     return () => unsubscribe();
-    // Chạy lại khi phiên đăng nhập sẵn sàng hoặc khi đổi tài khoản
-  }, [user, loadingAuth]);
+  }, []);
 
   // Get unique specializations for filtering
   const allSpecializations = Array.from(
@@ -126,29 +111,28 @@ const AllPartnersPage: React.FC = () => {
     );
   }
 
-  if (canDangNhap) {
+  if (loiPhanQuyen) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        {/* Phải đặt thẻ SEO ở CẢ nhánh này. Thẻ SEO của trang nằm mãi dưới
-            phần hiển thị chính, mà khách chưa đăng nhập thì thoát ở đây trước
-            — nên tiêu đề tab giữ nguyên của trang vừa xem, người dùng mở
-            /partners lại thấy đề "Yêu Cầu Huấn Luyện". Đây là trạng thái
-            thường trực với mọi khách vãng lai, không phải trường hợp hiếm. */}
+        {/* Phải đặt thẻ SEO ở CẢ nhánh này. Thẻ SEO của trang nằm mãi dưới phần
+            hiển thị chính, mà nhánh này thoát ra trước — nên tiêu đề tab sẽ giữ
+            nguyên của trang vừa xem, mở /partners lại thấy đề "Yêu Cầu Huấn
+            Luyện". */}
         <SEOHead
           title="Đối Tác Đào Tạo An Toàn Lao Động | SafetyConnect"
-          description="Danh sách các đơn vị đào tạo an toàn lao động đã được xác minh. Đăng nhập để xem thông tin chi tiết và liên hệ."
+          description="Danh sách các đơn vị đào tạo an toàn lao động đã được xác minh."
           url="https://antoan.web.app/partners"
         />
         <div className="max-w-lg w-full bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary/10 flex items-center justify-center">
-            <i className="fas fa-user-group text-2xl text-primary"></i>
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-amber-50 flex items-center justify-center">
+            <i className="fas fa-lock text-2xl text-amber-500"></i>
           </div>
           <h1 className="text-xl font-bold text-neutral-dark mb-3">
-            Đăng nhập để xem danh sách đối tác
+            Chưa xem được danh sách đối tác
           </h1>
           <p className="text-gray-600 mb-6">
-            Thông tin liên hệ của các đơn vị đào tạo chỉ hiển thị cho người dùng đã đăng nhập, để
-            tránh bị thu thập tự động.
+            Máy chủ đang từ chối truy cập dữ liệu đối tác. Đây là lỗi cấu hình phía hệ thống, không
+            phải do máy của bạn. Vui lòng quay lại sau.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button

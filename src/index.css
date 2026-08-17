@@ -41,3 +41,54 @@
 body {
   @apply bg-neutral-light font-sans;
 }
+
+/* ===== BĂNG TRƯỢT ĐỐI TÁC =====
+ *
+ * Danh sách đối tác trượt ngang, lặp vô hạn, không giới hạn số lượng.
+ *
+ * Cách chạy: dựng HAI bản sao giống hệt nhau nằm cạnh nhau, rồi kéo cả dải sang
+ * trái đúng 50% chiều rộng của chính nó — tức đúng bằng một bản. Tới lúc đó
+ * khung hình đang nhìn vào bản thứ hai, giống hệt vị trí ban đầu, nên khi nhảy
+ * về 0 mắt không thấy điểm nối.
+ *
+ * LƯU Ý khi sửa: KHÔNG được dùng `gap` để tạo khoảng cách giữa các thẻ. Với 2N
+ * thẻ, flex chỉ chèn 2N−1 khoảng — thiếu đúng một khoảng ở cuối, nên 50% chiều
+ * rộng không còn khớp trọn một bản và băng sẽ giật nhẹ mỗi vòng. Khoảng cách vì
+ * vậy nằm ở padding-right của từng thẻ (xem lớp `the-truot`).
+ */
+@keyframes truotNgangVoHan {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.bang-truot {
+  display: flex;
+  width: max-content;
+  animation: truotNgangVoHan var(--thoi-luong-truot, 40s) linear infinite;
+}
+
+/* Dừng khi rê chuột vào hoặc khi bàn phím đi tới một thẻ bên trong — nếu không
+   thì không ai bấm nổi vào thẻ đang chạy. */
+.bang-truot:hover,
+.bang-truot:focus-within {
+  animation-play-state: paused;
+}
+
+.the-truot {
+  flex: 0 0 auto;
+  width: 22rem;
+  padding-right: 2rem;
+}
+
+/* Người đã bật "giảm chuyển động" trong hệ điều hành thì không cho chạy nữa;
+   thành phần React cũng bỏ luôn bản sao và mở cuộn tay. */
+@media (prefers-reduced-motion: reduce) {
+  .bang-truot {
+    animation: none;
+  }
+}

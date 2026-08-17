@@ -1,40 +1,37 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../services/firebaseConfig';
 import { TrustedPartner, PartnerProfile, partnerProfileToTrustedPartner } from '../../types';
 import TrustedPartnerCard from '../TrustedPartnerCard';
 import TrustedPartnerInfoModal from '../TrustedPartnerInfoModal';
-import { AppContext } from '../../App';
+import { muonGiamChuyenDong } from '../../utils/cuonTrang';
+
+/** Dưới mức này thì một bản sao không đủ phủ kín màn hình, băng trượt sẽ hở. */
+const TOI_THIEU_DE_TRUOT = 4;
+
+/** Mỗi thẻ mất bấy nhiêu giây để đi hết màn hình. Thẻ càng nhiều, vòng càng dài. */
+const GIAY_MOI_THE = 5;
 
 const TrustedPartnersSection: React.FC = () => {
     const navigate = useNavigate();
-    const { user, loadingAuth } = useContext(AppContext);
     const [trustedPartners, setTrustedPartners] = useState<TrustedPartner[]>([]);
     const [selectedPartner, setSelectedPartner] = useState<TrustedPartner | null>(null);
+    const [giamChuyenDong] = useState(muonGiamChuyenDong);
 
-    // Lấy danh sách đối tác nổi bật.
+    // Lấy toàn bộ đối tác nổi bật, KHÔNG cắt bớt: yêu cầu là băng trượt vô hạn,
+    // bao nhiêu đối tác cũng chạy được.
     //
-    // PHẢI chờ Firebase khôi phục xong phiên đăng nhập rồi mới truy vấn.
-    // Trước đây khối này truy vấn ngay lúc trang dựng, mà lúc đó người dùng vẫn
-    // đang là "chưa đăng nhập" nên rules từ chối — và vì danh sách phụ thuộc
-    // rỗng, nó không bao giờ thử lại. Kết quả: người ĐÃ đăng nhập vẫn thấy dòng
-    // "Đang cập nhật đối tác" mãi mãi.
+    // Không còn chờ đăng nhập nữa. firestore.rules nay cho đọc công khai hồ sơ
+    // có status == 'approved', nên khách vãng lai cũng thấy — trước đây họ luôn
+    // gặp dòng "Đang cập nhật đối tác" dù danh sách có người.
+    //
+    // Điều kiện where('status','==','approved') là BẮT BUỘC, không phải để lọc
+    // cho gọn: Firestore chỉ chấp nhận truy vấn khi chắc chắn MỌI bản ghi trả về
+    // đều qua được rules. Bỏ nó đi thì cả truy vấn bị từ chối.
     useEffect(() => {
-        // Đang khôi phục phiên thì chưa tới lượt
-        if (loadingAuth) return;
-
-        // Chưa đăng nhập thì rules chặn sẵn, khỏi gọi cho tốn lượt đọc
-        if (!user) {
-            setTrustedPartners([]);
-            return;
-        }
-
-        const partnersCollection = collection(db, 'partners');
-        // Remove orderBy to avoid composite index requirement
-        // We'll sort in JavaScript and limit after sorting
         const partnersQuery = query(
-            partnersCollection,
+            collection(db, 'partners'),
             where('status', '==', 'approved'),
             where('featured', '==', true)
         );
@@ -42,56 +39,44 @@ const TrustedPartnersSection: React.FC = () => {
         const unsubscribe = onSnapshot(
             partnersQuery,
             (querySnapshot) => {
-                const partnersData = querySnapshot.docs.map((docSnap) => {
-                    const partnerProfile = {
+                const partnersData = querySnapshot.docs.map((docSnap) =>
+                    partnerProfileToTrustedPartner({
                         uid: docSnap.id,
                         ...docSnap.data(),
-                    } as PartnerProfile;
-                    return partnerProfileToTrustedPartner(partnerProfile);
-                });
+                    } as PartnerProfile)
+                );
 
-                // Sort by displayOrder and limit to 3 in JavaScript
+                // Sắp xếp bằng JavaScript để khỏi phải tạo chỉ mục ghép trên Firestore.
                 partnersData.sort((a, b) => {
                     const orderA = a.displayOrder ?? 999999;
                     const orderB = b.displayOrder ?? 999999;
                     return orderA - orderB;
                 });
 
-                setTrustedPartners(partnersData.slice(0, 3));
+                setTrustedPartners(partnersData);
             },
             (err) => {
-                // permission-denied ở đây KHÔNG phải hỏng hóc: firestore.rules
-                // yêu cầu đăng nhập mới đọc được bảng partners (để đối thủ không
-                // hút được email và số điện thoại đối tác). Khách vãng lai vì thế
-                // luôn rơi vào nhánh này, và khối bên dưới hiện "Đang cập nhật
-                // đối tác".
-                //
-                // Muốn khách chưa đăng nhập cũng thấy được danh sách đối tác thì
-                // phải chọn một trong hai hướng, xem mục A1b của phiếu kiểm định:
-                //   - mở rules cho đọc công khai hồ sơ đã duyệt (đánh đổi: lộ
-                //     email/SĐT đối tác), hoặc
-                //   - tách phần giới thiệu công khai sang bảng riêng, giữ thông
-                //     tin liên hệ ở bảng cần đăng nhập.
-                if (err?.code === 'permission-denied') {
-                    console.warn(
-                        'Danh sách đối tác chỉ hiển thị cho người đã đăng nhập (theo firestore.rules).'
-                    );
-                    return;
-                }
                 console.error('Lỗi khi tải danh sách đối tác: ', err);
             }
         );
 
         return () => unsubscribe();
-        // Chạy lại khi phiên đăng nhập sẵn sàng hoặc khi đổi tài khoản
-    }, [user, loadingAuth]);
+    }, []);
+
+    const duDeTruot = trustedPartners.length >= TOI_THIEU_DE_TRUOT && !giamChuyenDong;
+
+    const veThe = (partner: TrustedPartner, khoa: string) => (
+        <div key={khoa} className="the-truot">
+            <TrustedPartnerCard partner={partner} onClick={() => setSelectedPartner(partner)} />
+        </div>
+    );
 
     return (
         <>
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
-                        <div className="inline-block bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-1 rounded-full text-sm font-semibold mb-4 flex items-center gap-2 justify-center">
+                        <div className="inline-flex bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-1 rounded-full text-sm font-semibold mb-4 items-center gap-2 justify-center">
                             <i className="fas fa-check-circle"></i>
                             <span>ĐỐI TÁC UY TÍN</span>
                         </div>
@@ -105,17 +90,49 @@ const TrustedPartnersSection: React.FC = () => {
 
                     {trustedPartners.length > 0 ? (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                                {trustedPartners.map((partner) => (
-                                    <TrustedPartnerCard
-                                        key={partner.id}
-                                        partner={partner}
-                                        onClick={() => setSelectedPartner(partner)}
-                                    />
-                                ))}
-                            </div>
+                            {duDeTruot ? (
+                                <div
+                                    className="relative overflow-hidden mb-12"
+                                    role="region"
+                                    aria-label={`Băng trượt ${trustedPartners.length} đối tác huấn luyện`}
+                                >
+                                    <div
+                                        className="bang-truot"
+                                        style={
+                                            {
+                                                '--thoi-luong-truot': `${trustedPartners.length * GIAY_MOI_THE}s`,
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        {trustedPartners.map((p) => veThe(p, p.id))}
 
-                            {/* View All Partners Button */}
+                                        {/* Bản sao chỉ để mắt nhìn thấy liền mạch. aria-hidden để
+                                            trình đọc màn hình không đọc lại toàn bộ danh sách lần
+                                            hai, và inert để bàn phím không lạc vào các thẻ trùng. */}
+                                        <div className="flex" aria-hidden="true" inert>
+                                            {trustedPartners.map((p) => veThe(p, `ban-sao-${p.id}`))}
+                                        </div>
+                                    </div>
+
+                                    {/* Mờ dần hai mép để thẻ trôi ra khỏi khung êm hơn là bị cắt cụt. */}
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent"></div>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent"></div>
+                                </div>
+                            ) : (
+                                // Ít đối tác, hoặc người dùng đã bật "giảm chuyển động": bày ngang
+                                // và cho cuộn tay. Chạy băng trượt lúc này chỉ tạo ra khoảng hở.
+                                <div className="flex justify-center flex-wrap gap-8 mb-12 overflow-x-auto">
+                                    {trustedPartners.map((partner) => (
+                                        <div key={partner.id} className="w-full max-w-sm">
+                                            <TrustedPartnerCard
+                                                partner={partner}
+                                                onClick={() => setSelectedPartner(partner)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             <div className="text-center">
                                 <button
                                     onClick={() => navigate('/partners')}
@@ -149,7 +166,6 @@ const TrustedPartnersSection: React.FC = () => {
                 </div>
             </section>
 
-            {/* Trusted Partner Info Modal */}
             {selectedPartner && (
                 <TrustedPartnerInfoModal
                     partner={selectedPartner}

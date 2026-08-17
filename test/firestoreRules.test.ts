@@ -6,7 +6,17 @@ import {
   assertSucceeds,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, updateDoc, getDoc, getDocs, collection } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  getDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+} from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
 
@@ -130,6 +140,60 @@ describe('firestore.rules — đánh dấu tin nhắn đã đọc', () => {
     if (boQuaNeuKhongCoEmulator()) return;
     const db = testEnv!.authenticatedContext(UID_NGUOILA).firestore();
     await assertFails(getDoc(doc(db, 'chatMessages', 'tin1')));
+  });
+});
+
+describe('firestore.rules — hồ sơ đối tác', () => {
+  it('admin TỰ TẠO được hồ sơ đối tác hộ', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(
+      setDoc(doc(db, 'partners', 'doitac_moi'), {
+        businessName: 'Công ty An toàn Miền Trung',
+        status: 'approved',
+        email: 'lienhe@antoanmt.vn',
+        capabilities: ['An toàn điện'],
+      })
+    );
+  });
+
+  it('người thường KHÔNG tạo được hồ sơ mang uid của người khác', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.authenticatedContext(UID_NGUOILA).firestore();
+    await assertFails(
+      setDoc(doc(db, 'partners', 'uid_nguoi_khac'), { businessName: 'Giả mạo' })
+    );
+  });
+
+  it('khách vãng lai ĐỌC được đối tác đã duyệt (để hiện ở trang chủ)', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertSucceeds(
+      getDocs(query(collection(db, 'partners'), where('status', '==', 'approved')))
+    );
+  });
+
+  it('khách vãng lai KHÔNG đọc được hồ sơ chờ duyệt', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      getDocs(query(collection(db, 'partners'), where('status', '==', 'pending')))
+    );
+  });
+
+  it('khách vãng lai không lấy được cả bảng khi bỏ bộ lọc', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(getDocs(collection(db, 'partners')));
+  });
+
+  it('chỉ admin mới xoá được hồ sơ đối tác', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const dbNguoiLa = testEnv!.authenticatedContext(UID_NGUOILA).firestore();
+    await assertFails(deleteDoc(doc(dbNguoiLa, 'partners', UID_DOITAC)));
+
+    const dbAdmin = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(deleteDoc(doc(dbAdmin, 'partners', UID_DOITAC)));
   });
 });
 

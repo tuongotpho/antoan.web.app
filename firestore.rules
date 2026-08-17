@@ -41,12 +41,29 @@ service cloud.firestore {
     // === HỒ SƠ ĐỐI TÁC ===
 
     match /partners/{partnerId} {
-      allow create: if isAuthenticated() && request.auth.uid == partnerId;
+      // Đối tác tự đăng ký hồ sơ của chính mình, HOẶC admin tự tạo hồ sơ hộ.
+      //
+      // Vế isAdmin() là mới: trước đây chỉ cho tạo hồ sơ trùng uid người gọi,
+      // nên admin không thể tự nhập danh sách đối tác đã có sẵn ngoài đời —
+      // phải chờ từng đơn vị vào đăng ký rồi mới duyệt được.
+      allow create: if (isAuthenticated() && request.auth.uid == partnerId) || isAdmin();
 
-      // Trước đây mở đọc công khai để client query email đối tác rồi tự gửi mail.
-      // Việc đó đã chuyển sang Cloud Function (dùng Admin SDK, bỏ qua rules),
-      // nên không cần mở nữa — email và SĐT đối tác không còn bị thu thập tự do.
-      allow read: if isAuthenticated();
+      // Hồ sơ ĐÃ DUYỆT đọc được công khai; hồ sơ chờ duyệt hoặc bị từ chối thì
+      // phải đăng nhập.
+      //
+      // Mở phần này là điều kiện bắt buộc để trang chủ giới thiệu được đối tác
+      // với khách vãng lai — trước đây khách chưa đăng nhập luôn thấy dòng
+      // "Đang cập nhật đối tác" dù danh sách có người.
+      //
+      // ĐÁNH ĐỔI đã cân nhắc: email và số điện thoại của đối tác đã duyệt trở
+      // thành công khai. Chấp nhận được vì đơn vị đào tạo lên đây chính là để
+      // khách tìm thấy và liên hệ — khác hẳn thông tin khách hàng, thứ vẫn
+      // khoá kín trong trainingRequests.
+      //
+      // Lưu ý kỹ thuật: truy vấn danh sách phải kèm where('status','==','approved')
+      // thì mới qua được rules, vì Firestore đòi mọi bản ghi trả về đều thoả.
+      allow read: if resource.data.status == 'approved' || isAuthenticated();
+
       allow update: if isAuthenticated() && (request.auth.uid == partnerId || isAdmin());
       allow delete: if isAdmin();
     }

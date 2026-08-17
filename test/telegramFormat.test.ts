@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-// @ts-expect-error — file CommonJS phía Cloud Functions, không có khai báo kiểu
+// File CommonJS phía Cloud Functions, không có khai báo kiểu.
 import { escapeTelegramHtml, formatTrainingRequestMessage } from '../functions/telegramFormat.js';
 
 /**

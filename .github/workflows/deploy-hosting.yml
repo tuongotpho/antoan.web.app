@@ -58,6 +58,15 @@ jobs:
       - name: Soát lỗi mã nguồn (lint)
         run: npm run lint
 
+      # Kiểm kiểu dữ liệu. BƯỚC NÀY TRƯỚC ĐÂY KHÔNG CÓ, và đó là một lỗ hổng
+      # thật: `vite build` chỉ dịch mã chứ KHÔNG kiểm kiểu, còn eslint không bắt
+      # được tên gọi chưa import trong file .tsx. Hai modal (TrustedPartnerInfoModal
+      # và ImageLightbox) vì thế đã lên tới bản chạy thật với một hook được gọi
+      # mà quên import — mở modal ra là vỡ, CI vẫn xanh. Chỉ `tsc --noEmit` bắt
+      # được loại lỗi này.
+      - name: Kiểm kiểu dữ liệu (TypeScript)
+        run: npm run typecheck
+
       - name: Chạy test
         run: npx vitest run --exclude test/firestoreRules.test.ts
 

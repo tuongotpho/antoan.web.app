@@ -1,17 +1,43 @@
 import React from 'react';
 import { TrustedPartner } from '../types';
+import { validateAndFormatUrl } from '../utils/validationHelpers';
 
 interface TrustedPartnerCardProps {
   partner: TrustedPartner;
+  /** Mở hộp thông tin chi tiết của đối tác. */
   onClick: () => void;
 }
 
 const TrustedPartnerCard: React.FC<TrustedPartnerCardProps> = ({ partner, onClick }) => {
+  // Bấm vào thẻ thì sang thẳng trang web của đối tác.
+  //
+  // validateAndFormatUrl tự thêm https:// khi người nhập chỉ gõ tên miền, và
+  // trả về chuỗi rỗng nếu địa chỉ không dùng được — lúc đó thẻ quay lại hành vi
+  // cũ là mở hộp thông tin, chứ không dẫn người dùng tới một liên kết hỏng.
+  const trangWeb = validateAndFormatUrl(partner.website);
+
   return (
     <div
-      onClick={onClick}
-      className="relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden border border-gray-100 group hover:-translate-y-2"
+      onClick={trangWeb ? undefined : onClick}
+      className={`relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 group hover:-translate-y-2 ${
+        trangWeb ? '' : 'cursor-pointer'
+      }`}
     >
+      {/* Liên kết phủ kín thẻ. Dùng thẻ <a> phủ lên thay vì bọc cả thẻ trong
+          <a>, vì bên trong còn một nút bấm — mà HTML không cho đặt nút lồng
+          trong liên kết. Cách này giữ được cả hai: bấm chỗ nào cũng sang trang
+          đối tác, riêng nút "Xem chi tiết" nổi lên trên vẫn bấm riêng được. */}
+      {trangWeb && (
+        <a
+          href={trangWeb}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="absolute inset-0 z-20"
+          aria-label={`Mở trang web của ${partner.businessName} (mở tab mới)`}
+        >
+          <span className="sr-only">{partner.businessName}</span>
+        </a>
+      )}
       {/* Verified Badge */}
       {partner.verified && (
         <div className="absolute top-4 right-4 z-10">
@@ -78,6 +104,8 @@ const TrustedPartnerCard: React.FC<TrustedPartnerCardProps> = ({ partner, onClic
             <div className="flex items-center gap-2">
               <i className="fas fa-globe w-4 text-gray-400"></i>
               <span className="text-xs truncate text-blue-600">{partner.website}</span>
+              {/* Dấu hiệu cho biết bấm vào thẻ sẽ mở sang trang khác, ở tab mới. */}
+              <i className="fas fa-arrow-up-right-from-square text-[10px] text-blue-400 shrink-0"></i>
             </div>
           )}
         </div>
@@ -87,10 +115,21 @@ const TrustedPartnerCard: React.FC<TrustedPartnerCardProps> = ({ partner, onClic
           <span className="text-sm text-gray-500">
             {partner.establishedYear && `Từ ${partner.establishedYear}`}
           </span>
-          <div className="flex items-center gap-1.5 text-primary font-semibold text-sm group-hover:gap-2.5 transition-all">
+          <button
+            type="button"
+            onClick={(e) => {
+              // Chặn cả nổi bọt lẫn hành vi mặc định: nút này nằm ĐÈ lên liên
+              // kết phủ kín thẻ, không chặn thì bấm "Xem chi tiết" lại nhảy
+              // sang trang đối tác.
+              e.preventDefault();
+              e.stopPropagation();
+              onClick();
+            }}
+            className="relative z-30 flex items-center gap-1.5 text-primary font-semibold text-sm hover:gap-2.5 transition-all rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          >
             <span>Xem chi tiết</span>
-            <i className="fas fa-arrow-right"></i>
-          </div>
+            <i className={`fas ${trangWeb ? 'fa-circle-info' : 'fa-arrow-right'}`}></i>
+          </button>
         </div>
       </div>
     </div>

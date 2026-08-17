@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:rules": "npx firebase-tools@14 emulators:exec --only firestore --project demo-antoan \"npx vitest run test/firestoreRules.test.ts\""
+    "test:rules": "npx firebase-tools@14 emulators:exec --only firestore --project demo-antoan \"npx vitest run test/firestoreRules.test.ts\"",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

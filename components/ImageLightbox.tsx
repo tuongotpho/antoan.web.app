@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useKhoaConTroTrongHop } from '../hooks/useKhoaConTroTrongHop';
 
 interface ImageLightboxProps {
   images: string[];
