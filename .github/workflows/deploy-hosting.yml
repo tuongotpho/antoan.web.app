@@ -192,6 +192,33 @@ jobs:
             --non-interactive \
             --force
 
+      # Chỉ mục Firestore. BƯỚC NÀY TRƯỚC ĐÂY KHÔNG CÓ.
+      #
+      # firebase.json vẫn khai "indexes": "firestore.indexes.json" từ lâu, nhưng
+      # CI chỉ deploy `firestore:rules` — nên file chỉ mục CHƯA BAO GIỜ được nạp
+      # lên. Hệ quả đã đo được: máy chủ có 7 chỉ mục còn file nguồn chỉ khai 6,
+      # cái lệch là blogPosts(category+published+publishedAt) — ai đó tạo tay
+      # trên Console lúc gặp lỗi rồi không ghi lại vào mã.
+      #
+      # Nguy hiểm ở chiều ngược lại: thêm một truy vấn mới cần chỉ mục mới, khai
+      # đúng vào file, rồi yên tâm là xong — mà thật ra nó không bao giờ lên máy
+      # chủ, và truy vấn đó vỡ với người dùng thật.
+      #
+      # KHÔNG dùng --force ở bước này: --force cho phép XOÁ những chỉ mục có trên
+      # máy chủ mà không có trong file. Xoá nhầm một chỉ mục đang dùng là hỏng
+      # truy vấn ngay, và dựng lại mất hàng phút. Cứ để nó chỉ thêm, không xoá.
+      - name: Deploy firestore indexes
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: |
+          if ! npx firebase-tools@14 deploy \
+                 --only firestore:indexes \
+                 --project "$PROJECT_ID" \
+                 --non-interactive; then
+            echo "::error::Không deploy được chỉ mục Firestore. Hosting và firestore rules đã deploy xong ở các bước trên."
+            exit 1
+          fi
+
       - name: Deploy storage rules
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
