@@ -49,7 +49,7 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialIndex, onC
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors z-10"
-        aria-label="Close"
+        aria-label="Đóng ảnh"
       >
         <i className="fas fa-times"></i>
       </button>
@@ -69,7 +69,7 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialIndex, onC
             goToPrevious();
           }}
           className="absolute left-4 text-white text-4xl hover:text-gray-300 transition-colors"
-          aria-label="Previous image"
+          aria-label="Ảnh trước"
         >
           <i className="fas fa-chevron-left"></i>
         </button>
@@ -99,7 +99,7 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, initialIndex, onC
             goToNext();
           }}
           className="absolute right-4 text-white text-4xl hover:text-gray-300 transition-colors"
-          aria-label="Next image"
+          aria-label="Ảnh sau"
         >
           <i className="fas fa-chevron-right"></i>
         </button>

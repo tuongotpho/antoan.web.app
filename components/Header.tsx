@@ -249,7 +249,7 @@ const Header: React.FC<HeaderProps> = ({
             <button
               onClick={closeMobileMenu}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Close menu"
+              aria-label="Đóng menu"
             >
               <svg
                 className="w-6 h-6 text-neutral-dark"
