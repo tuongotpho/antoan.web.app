@@ -84,3 +84,49 @@ export const gomTheoThang = (
 /** Giá trị lớn nhất trong bảng, dùng để tính chiều cao cột. Tối thiểu là 1. */
 export const mucCaoNhat = (cot: CotThang[]): number =>
   Math.max(1, ...cot.map((c) => Math.max(c.soYeuCau, c.soDoiTac)));
+
+interface CoChiTiet {
+  trainingDetails?: { type?: string }[];
+}
+
+export interface LoaiHinhPhoBien {
+  loai: string;
+  soLuot: number;
+  tiLe: number;
+}
+
+/**
+ * Xếp hạng các loại hình huấn luyện được chọn nhiều nhất.
+ *
+ * QUAN TRỌNG — mẫu số là TỔNG SỐ LƯỢT CHỌN, không phải số yêu cầu.
+ *
+ * Form cho phép khách bấm "Thêm nội dung huấn luyện", nên một yêu cầu có thể
+ * chọn cả An toàn điện lẫn PCCC — tính là 2 lượt trên 1 yêu cầu. Lấy số yêu
+ * cầu làm mẫu số thì tổng các tỉ lệ vượt quá 100%.
+ */
+export const xepHangLoaiHinh = (
+  yeuCau: CoChiTiet[],
+  soLuongTop = 3
+): LoaiHinhPhoBien[] => {
+  const dem: Record<string, number> = {};
+
+  for (const yc of yeuCau) {
+    for (const ct of yc?.trainingDetails ?? []) {
+      const loai = ct?.type?.trim();
+      if (!loai) continue;
+      dem[loai] = (dem[loai] || 0) + 1;
+    }
+  }
+
+  const tongLuot = Object.values(dem).reduce((s, n) => s + n, 0);
+  if (tongLuot === 0) return [];
+
+  return Object.entries(dem)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, soLuongTop)
+    .map(([loai, soLuot]) => ({
+      loai,
+      soLuot,
+      tiLe: Math.round((soLuot / tongLuot) * 100),
+    }));
+};

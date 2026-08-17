@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { PartnerProfile, TrainingRequest } from '../../types';
 import KPIStatCard from '../KPIStatCard';
 import GrowthChart from '../GrowthChart';
+import { xepHangLoaiHinh } from '../../utils/thongKeThang';
 import InfoPanel from '../InfoPanel';
 import PendingPartnerCard from '../PendingPartnerCard';
 import PartnerTable from '../PartnerTable';
@@ -35,25 +36,12 @@ const DashboardTab: React.FC<DashboardTabProps> = ({
         const aPartners = partners.filter((p) => p.status === 'approved');
         const uRequests = requests.filter((r) => r.urgent);
 
-        // Calculate Hot Training Types
-        const trainingTypeCounts: { [key: string]: number } = requests.reduce(
-            (acc, req) => {
-                req.trainingDetails?.forEach((detail) => {
-                    acc[detail.type] = (acc[detail.type] || 0) + 1;
-                });
-                return acc;
-            },
-            {} as { [key: string]: number }
-        );
-
-        const sortedTypes = Object.entries(trainingTypeCounts)
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 3);
-
-        const totalReqs = requests.length;
-        const hotTrainingTypes = sortedTypes.map(([type, count]) => ({
-            text: `${type}: ${count} yêu cầu`,
-            details: `${totalReqs > 0 ? ((count / totalReqs) * 100).toFixed(0) : 0}%`,
+        // Quy tắc xếp hạng nằm trong utils/thongKeThang.ts để test được.
+        // Mẫu số là TỔNG SỐ LƯỢT CHỌN chứ không phải số yêu cầu — xem chú thích
+        // trong hàm đó để hiểu vì sao.
+        const hotTrainingTypes = xepHangLoaiHinh(requests, 3).map((x) => ({
+            text: `${x.loai}: ${x.soLuot} lượt chọn`,
+            details: `${x.tiLe}%`,
         }));
 
         // Calculate "Needs Attention" items

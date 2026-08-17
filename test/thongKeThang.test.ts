@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { gomTheoThang, doiVeNgay, mucCaoNhat } from '../utils/thongKeThang';
+import { gomTheoThang, doiVeNgay, mucCaoNhat, xepHangLoaiHinh } from '../utils/thongKeThang';
 
 const mocThoiGian = new Date('2026-08-17T10:00:00Z'); // tháng 8/2026
 
@@ -112,5 +112,57 @@ describe('mucCaoNhat', () => {
 
   it('không bao giờ trả về 0 — tránh chia cho 0 khi tính chiều cao cột', () => {
     expect(mucCaoNhat(gomTheoThang([], [], 6, mocThoiGian))).toBe(1);
+  });
+});
+
+describe('xepHangLoaiHinh — tỉ lệ không được vượt 100%', () => {
+  it('một yêu cầu chọn nhiều loại vẫn cho tổng tỉ lệ đúng 100%', () => {
+    // Đây là lỗi cũ: mẫu số lấy SỐ YÊU CẦU trong khi tử số đếm SỐ LƯỢT CHỌN.
+    // Với 2 yêu cầu mà tổng 4 lượt chọn, tỉ lệ cũ sẽ ra 100% + 100% = 200%.
+    const yeuCau = [
+      { trainingDetails: [{ type: 'An toàn điện' }, { type: 'PCCC' }] },
+      { trainingDetails: [{ type: 'An toàn điện' }, { type: 'Sơ cấp cứu' }] },
+    ];
+    const kq = xepHangLoaiHinh(yeuCau, 5);
+    const tongTiLe = kq.reduce((s, x) => s + x.tiLe, 0);
+    expect(tongTiLe).toBeLessThanOrEqual(100);
+    expect(kq[0].loai).toBe('An toàn điện');
+    expect(kq[0].soLuot).toBe(2);
+    expect(kq[0].tiLe).toBe(50); // 2 trên 4 lượt
+  });
+
+  it('xếp theo số lượt giảm dần', () => {
+    const yeuCau = [
+      { trainingDetails: [{ type: 'A' }] },
+      { trainingDetails: [{ type: 'B' }] },
+      { trainingDetails: [{ type: 'B' }] },
+      { trainingDetails: [{ type: 'C' }] },
+      { trainingDetails: [{ type: 'C' }] },
+      { trainingDetails: [{ type: 'C' }] },
+    ];
+    expect(xepHangLoaiHinh(yeuCau, 3).map((x) => x.loai)).toEqual(['C', 'B', 'A']);
+  });
+
+  it('chỉ lấy đúng số hạng mục yêu cầu', () => {
+    const yeuCau = [
+      { trainingDetails: [{ type: 'A' }, { type: 'B' }, { type: 'C' }, { type: 'D' }] },
+    ];
+    expect(xepHangLoaiHinh(yeuCau, 2)).toHaveLength(2);
+  });
+
+  it('trả về mảng rỗng khi chưa có dữ liệu', () => {
+    expect(xepHangLoaiHinh([])).toEqual([]);
+    expect(xepHangLoaiHinh([{ trainingDetails: [] }])).toEqual([]);
+  });
+
+  it('bỏ qua mục thiếu loại hình, không vỡ', () => {
+    const yeuCau = [
+      { trainingDetails: [{ type: '' }, { type: '   ' }, {}, { type: 'An toàn điện' }] },
+      {},
+    ];
+    expect(() => xepHangLoaiHinh(yeuCau)).not.toThrow();
+    const kq = xepHangLoaiHinh(yeuCau);
+    expect(kq).toHaveLength(1);
+    expect(kq[0].tiLe).toBe(100);
   });
 });
