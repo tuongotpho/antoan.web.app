@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db, collection, doc, setDoc, serverTimestamp } from '../../services/firebaseConfig';
 import { PARTNER_CAPABILITIES } from '../../types';
 import { isValidPhone, isValidTaxId, isValidEmail } from '../../utils/validationHelpers';
+import { dungHoSoDoiTac, DuLieuFormDoiTac } from '../../utils/hoSoDoiTac';
 
 /**
  * Form để quản trị viên tự nhập hồ sơ đối tác.
@@ -24,7 +25,7 @@ const ThemDoiTacForm: React.FC<Props> = ({ onXong }) => {
   const [loi, setLoi] = useState('');
   const [thanhCong, setThanhCong] = useState('');
 
-  const trangThaiBanDau = {
+  const trangThaiBanDau: DuLieuFormDoiTac = {
     businessName: '',
     taxId: '',
     email: '',
@@ -90,30 +91,9 @@ const ThemDoiTacForm: React.FC<Props> = ({ onXong }) => {
       // Dùng mã tự sinh: hồ sơ này không gắn với tài khoản đăng nhập nào, nên
       // không có uid để làm mã. Đối tác tự đăng ký thì mã hồ sơ chính là uid.
       const ref = doc(collection(db, 'partners'));
-      const nam = parseInt(duLieu.establishedYear, 10);
-      const thuTu = parseInt(duLieu.displayOrder, 10);
 
       await setDoc(ref, {
-        uid: ref.id,
-        businessName: duLieu.businessName.trim(),
-        taxId: duLieu.taxId.trim(),
-        email: duLieu.email.trim(),
-        phone: duLieu.phone.trim(),
-        address: duLieu.address.trim(),
-        website: duLieu.website.trim(),
-        description: duLieu.description.trim(),
-        notableClients: duLieu.notableClients.trim(),
-        capabilities: duLieu.capabilities,
-        ...(Number.isFinite(nam) ? { establishedYear: nam } : {}),
-        ...(Number.isFinite(thuTu) ? { displayOrder: thuTu } : {}),
-        subscribesToEmails: false,
-        // Admin tự nhập thì duyệt luôn, khỏi phải qua bước phê duyệt.
-        status: 'approved',
-        membership: 'free',
-        verified: duLieu.verified,
-        featured: duLieu.featured,
-        // Đánh dấu để phân biệt với hồ sơ do đối tác tự đăng ký.
-        taoBoiQuanTri: true,
+        ...dungHoSoDoiTac(duLieu, ref.id),
         createdAt: serverTimestamp(),
       });
 
