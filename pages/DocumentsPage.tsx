@@ -278,10 +278,41 @@ const DocumentsPage: React.FC = () => {
     }
   };
 
+  const documentsSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': 'https://antoan.web.app/documents#collection',
+        'name': 'Tài Liệu & Biểu Mẫu An Toàn Lao Động | SafetyConnect',
+        'url': 'https://antoan.web.app/documents',
+        'description':
+          'Kho tài liệu, quy định pháp luật và biểu mẫu về an toàn lao động, tải miễn phí. Cập nhật theo Nghị định 44/2016/NĐ-CP và các văn bản hiện hành.',
+        'inLanguage': 'vi-VN',
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': 'https://antoan.web.app/documents#breadcrumb',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Trang chủ',
+            'item': 'https://antoan.web.app/',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Tài Liệu & Biểu Mẫu',
+            'item': 'https://antoan.web.app/documents',
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="container mx-auto p-4 md:p-8">
-      {/* Trang này nằm trong sitemap nhưng trước đây không có thẻ SEO riêng, nên
-          Google thấy tiêu đề và mô tả trùng hệt trang chủ. */}
       <SEOHead
         title="Tài Liệu & Biểu Mẫu An Toàn Lao Động | SafetyConnect"
         description="Kho tài liệu, quy định pháp luật và biểu mẫu về an toàn lao động, tải miễn phí. Cập nhật theo Nghị định 44/2016/NĐ-CP và các văn bản hiện hành."
@@ -292,6 +323,7 @@ const DocumentsPage: React.FC = () => {
           'nghị định 44 an toàn lao động',
           'quy định an toàn lao động',
         ]}
+        schema={documentsSchema}
       />
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-neutral-dark mb-2">

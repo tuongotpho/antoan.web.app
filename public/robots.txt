@@ -1,61 +1,143 @@
 # SafetyConnect - Robots.txt
-# Allow search engines and AI bots to crawl the site
+# Cho phép công cụ tìm kiếm và các AI crawlers thu thập thông tin công khai
 
-# AI Search Crawlers
+# 1. AI Search & LLM Crawlers (Generative Engine Optimization - GEO)
 User-agent: GPTBot
 Allow: /
 Allow: /blog/
 Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /admin
 Disallow: /chat
-Disallow: /requests
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
 
 User-agent: ClaudeBot
 Allow: /
 Allow: /blog/
 Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /admin
 Disallow: /chat
-Disallow: /requests
+
+User-agent: Claude-Web
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
 
 User-agent: PerplexityBot
 Allow: /
 Allow: /blog/
 Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /admin
+Disallow: /chat
+
+User-agent: Google-Extended
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
 
 User-agent: Applebot
 Allow: /
 Allow: /blog/
 Allow: /training/
-Disallow: /admin
-
-# Cac cong cu tim kiem thong thuong (Google, Bing...)
-User-agent: *
-Allow: /
-
-# Khu vuc rieng tu, khong cho lap chi muc
-#
-# /chat truoc day chi bi chan voi cac bot AI o phia tren, con Googlebot thi
-# khong - nen Google van co the dua trang tin nhan vao ket qua tim kiem.
-#
-# /partners can dang nhap moi xem duoc, bot chi thay man hinh moi dang nhap.
-#
-# Da bo /dashboard, /settings va /api/ vi ba duong dan nay khong ton tai trong
-# ung dung - liet ke cho khong co chi lam file nay kho doc.
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /admin
 Disallow: /chat
-Disallow: /partners
 
-# Cac duong dan quan trong cho SEO
+User-agent: Amazonbot
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
+
+User-agent: Bytespider
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
+
+User-agent: FacebookBot
+Allow: /
+Allow: /blog/
+Allow: /training/
+Allow: /documents
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
+Disallow: /admin
+Disallow: /chat
+
+# 2. Các công cụ tìm kiếm phổ thông (Google, Bing, Cốc Cốc, DuckDuckGo, Yahoo...)
+User-agent: *
+Allow: /
 Allow: /blog
 Allow: /blog/*
 Allow: /training/*
 Allow: /documents
-Allow: /requests
+Allow: /partners
+Allow: /llms.txt
+Allow: /llms-full.txt
 
-# Sitemap location
+# Khu vực quản trị & tin nhắn riêng tư
+Disallow: /admin
+Disallow: /chat
+
+# Sitemap & AI Documentation
 Sitemap: https://antoan.web.app/sitemap.xml
-
-# Crawl-delay for good measure (optional)
-Crawl-delay: 0.5
+# LLM Context: https://antoan.web.app/llms.txt

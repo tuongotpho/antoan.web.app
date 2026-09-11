@@ -92,12 +92,45 @@ const BlogPage: React.FC = () => {
     );
   }
 
+  const blogCollectionSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': 'https://antoan.web.app/blog#collection',
+        'name': 'Blog & Kiến thức An toàn Lao động | SafetyConnect',
+        'url': 'https://antoan.web.app/blog',
+        'description':
+          'Cập nhật tin tức, kiến thức, quy định pháp luật về An toàn Lao động. Hướng dẫn, case study và kinh nghiệm thực tế từ các chuyên gia ATVSLĐ.',
+        'inLanguage': 'vi-VN',
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': 'https://antoan.web.app/blog#breadcrumb',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Trang chủ',
+            'item': 'https://antoan.web.app/',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Blog & Kiến thức',
+            'item': 'https://antoan.web.app/blog',
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SEOHead
         title="Blog & Kiến thức An toàn Lao động | SafetyConnect"
         description="Cập nhật tin tức, kiến thức, quy định pháp luật về An toàn Lao động. Hướng dẫn, case study và kinh nghiệm thực tế từ các chuyên gia ATVSLĐ."
-        url={window.location.href}
+        url="https://antoan.web.app/blog"
         type="website"
         keywords={[
           'blog an toàn lao động',
@@ -108,6 +141,7 @@ const BlogPage: React.FC = () => {
           'case study an toàn',
           'SafetyConnect blog',
         ]}
+        schema={blogCollectionSchema}
       />
 
       {/* Hero Section */}

@@ -17,14 +17,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="SafetyConnect" />
     <link rel="manifest" href="/manifest.json" />
-    <!-- Icon khi người dùng iPhone/iPad thêm trang vào màn hình chính.
-         TRƯỚC ĐÂY trỏ tới một file ảnh trên raw.githubusercontent.com — tức
-         icon của app phụ thuộc vào một kho mã của người khác: kho đổi tên, đổi
-         nhánh, xoá file hay GitHub chặn dẫn ảnh là icon mất. Mà app đã có sẵn
-         icon nằm ngay trong này. -->
     <link rel="apple-touch-icon" href="/icon-512.png" />
 
-    <!-- SEO Meta Tags -->
+    <!-- SEO & GEO Meta Tags -->
     <title>SafetyConnect - Nền Tảng Huấn Luyện An Toàn Lao Động Trực Tuyến & Online</title>
     <meta
       name="description"
@@ -32,11 +27,13 @@
     />
     <meta
       name="keywords"
-      content="huấn luyện an toàn lao động trực tuyến, học an toàn lao động online, an toàn lao động, huấn luyện an toàn, SafetyConnect, đào tạo an toàn, kết nối đào tạo, báo giá huấn luyện, an toàn vệ sinh lao động, ATVSLĐ"
+      content="huấn luyện an toàn lao động trực tuyến, học an toàn lao động online, an toàn lao động, huấn luyện an toàn, SafetyConnect, đào tạo an toàn, kết nối đào tạo, báo giá huấn luyện, an toàn vệ sinh lao động, ATVSLĐ, nghị định 44, nghị định 62"
     />
     <meta name="author" content="SafetyConnect" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://antoan.web.app/" />
+    <meta name="geo.region" content="VN" />
+    <meta name="geo.placename" content="Vietnam" />
 
     <!-- Resource Hints for Performance -->
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -45,6 +42,8 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://antoan.web.app/" />
+    <meta property="og:site_name" content="SafetyConnect" />
+    <meta property="og:locale" content="vi_VN" />
     <meta property="og:title" content="SafetyConnect - Nền Tảng Huấn Luyện An Toàn Lao Động Trực Tuyến & Online" />
     <meta
       property="og:description"
@@ -68,6 +67,35 @@
       content="https://raw.githubusercontent.com/thanhlv87/pic/refs/heads/main/connected.png"
     />
 
+    <!-- Global JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://antoan.web.app/#website",
+          "url": "https://antoan.web.app/",
+          "name": "SafetyConnect",
+          "description": "Nền tảng kết nối doanh nghiệp với các đơn vị đào tạo, huấn luyện an toàn lao động trực tuyến và trực tiếp uy tín trên toàn quốc.",
+          "inLanguage": "vi-VN"
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://antoan.web.app/#organization",
+          "name": "SafetyConnect",
+          "url": "https://antoan.web.app/",
+          "logo": "https://raw.githubusercontent.com/thanhlv87/pic/refs/heads/main/connected.png",
+          "description": "Nền tảng kết nối doanh nghiệp với các đối tác đào tạo, huấn luyện an toàn lao động trực tuyến (online) và trực tiếp uy tín trên toàn quốc.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "VN"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKK44026MJ"></script>
     <script>
@@ -81,6 +109,38 @@
   </head>
 
   <body>
+    <!-- Fallback Ngữ Nghĩa Dành Cho AI & Search Engine Crawlers (Non-JS) -->
+    <noscript>
+      <header>
+        <h1>SafetyConnect - Nền Tảng Huấn Luyện An Toàn Lao Động Trực Tuyến & Online</h1>
+        <p>Kết nối doanh nghiệp với các đơn vị đào tạo, huấn luyện an toàn lao động trực tuyến (online) và trực tiếp uy tín theo Nghị định 44/2016/NĐ-CP & Nghị định 62/2025/NĐ-CP.</p>
+      </header>
+      <main>
+        <section>
+          <h2>Các Lĩnh Vực Huấn Luyện Chuyên Sâu</h2>
+          <ul>
+            <li><a href="/training/an-toan-dien">Huấn Luyện An Toàn Điện Trực Tuyến & Online</a></li>
+            <li><a href="/training/an-toan-xay-dung">Huấn Luyện An Toàn Xây Dựng Trực Tuyến & Online</a></li>
+            <li><a href="/training/an-toan-hoa-chat">Huấn Luyện An Toàn Hóa Chất Online & Trực Tiếp</a></li>
+            <li><a href="/training/pccc">Huấn Luyện Phòng Cháy Chữa Cháy (PCCC) & CNCH</a></li>
+            <li><a href="/training/an-toan-buc-xa">Huấn Luyện An Toàn Bức Xạ Trực Tuyến & Online</a></li>
+            <li><a href="/training/quan-trac-moi-truong">Đào Tạo Quan Trắc Môi Trường Lao Động</a></li>
+            <li><a href="/training/danh-gia-phan-loai-lao-dong">Đào Tạo Đánh Giá Phân Loại Lao Động</a></li>
+            <li><a href="/training/so-cap-cuu">Huấn Luyện Sơ Cấp Cứu Trực Tuyến & Online</a></li>
+          </ul>
+        </section>
+        <section>
+          <h2>Tài Nguyên & Bài Viết Chuyên Đề</h2>
+          <ul>
+            <li><a href="/blog">Blog & Cẩm Nang Kiến Thức ATVSLĐ</a></li>
+            <li><a href="/documents">Kho Tài Liệu & Biểu Mẫu An Toàn Lao Động Miễn Phí</a></li>
+            <li><a href="/requests">Đăng Ký Yêu Cầu Báo Giá Huấn Luyện Miễn Phí</a></li>
+            <li><a href="/llms.txt">Tài liệu chuẩn cho AI (llms.txt)</a></li>
+          </ul>
+        </section>
+      </main>
+    </noscript>
+
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

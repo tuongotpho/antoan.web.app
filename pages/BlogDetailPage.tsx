@@ -227,7 +227,70 @@ const BlogDetailPage: React.FC = () => {
     );
   }
 
-  const blogUrl = `${window.location.origin}/blog/${post.slug || slug}`;
+  const blogUrl = `https://antoan.web.app/blog/${post.slug || slug}`;
+  const publishedIso =
+    post.publishedAt?.toDate().toISOString() || post.createdAt?.toDate().toISOString() || new Date().toISOString();
+  const modifiedIso = post.updatedAt?.toDate().toISOString() || publishedIso;
+
+  const blogArticleSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BlogPosting',
+        '@id': `${blogUrl}#article`,
+        'headline': post.title,
+        'description': post.excerpt,
+        'image': post.coverImage
+          ? [post.coverImage]
+          : ['https://raw.githubusercontent.com/thanhlv87/pic/refs/heads/main/connected.png'],
+        'datePublished': publishedIso,
+        'dateModified': modifiedIso,
+        'author': {
+          '@type': 'Person',
+          'name': post.author?.name || 'Chuyên gia ATVSLĐ SafetyConnect',
+        },
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'SafetyConnect',
+          'logo': {
+            '@type': 'ImageObject',
+            'url': 'https://raw.githubusercontent.com/thanhlv87/pic/refs/heads/main/connected.png',
+          },
+        },
+        'mainEntityOfPage': {
+          '@type': 'WebPage',
+          '@id': blogUrl,
+        },
+        'articleSection': post.category || 'An toàn lao động',
+        'keywords': (post.tags || []).join(', '),
+        'inLanguage': 'vi-VN',
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${blogUrl}#breadcrumb`,
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Trang chủ',
+            'item': 'https://antoan.web.app/',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Blog kiến thức',
+            'item': 'https://antoan.web.app/blog',
+          },
+          {
+            '@type': 'ListItem',
+            'position': 3,
+            'name': post.title,
+            'item': blogUrl,
+          },
+        ],
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,12 +303,9 @@ const BlogDetailPage: React.FC = () => {
         type="article"
         keywords={post.tags}
         author={post.author.name}
-        publishedTime={
-          post.publishedAt?.toDate().toISOString() || post.createdAt?.toDate().toISOString()
-        }
-        modifiedTime={
-          post.updatedAt?.toDate().toISOString() || post.createdAt?.toDate().toISOString()
-        }
+        publishedTime={publishedIso}
+        modifiedTime={modifiedIso}
+        schema={blogArticleSchema}
       />
 
       {/* Back Button */}

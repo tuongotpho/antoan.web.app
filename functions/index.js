@@ -640,12 +640,18 @@ exports.blogMetaTags = functions.https.onRequest(async (req, res) => {
   }
   </script>
   
-  <!-- Redirect to actual SPA page -->
-  <meta http-equiv="refresh" content="0; url=${url}" />
-  <script>window.location.href = "${url}";</script>
 </head>
 <body>
-  <p>Redirecting to <a href="${url}">${title}</a>...</p>
+  <main>
+    <article>
+      <h1>${title}</h1>
+      <p><strong>${excerpt}</strong></p>
+      <div>${post.content || ''}</div>
+    </article>
+  </main>
+  <nav>
+    <p>Chuyển tiếp tới: <a href="${url}">${title}</a> | <a href="https://antoan.web.app/">Trang chủ SafetyConnect</a></p>
+  </nav>
 </body>
 </html>`;
 
@@ -882,12 +888,18 @@ exports.trainingMetaTags = functions.https.onRequest(async (req, res) => {
   }
   </script>
   
-  <!-- Redirect to actual SPA page -->
-  <meta http-equiv="refresh" content="0; url=${url}" />
-  <script>window.location.href = "${url}";</script>
 </head>
 <body>
-  <p>Redirecting to <a href="${url}">${title}</a>...</p>
+  <main>
+    <article>
+      <h1>${title}</h1>
+      <p><strong>${excerpt}</strong></p>
+      <p>Chứng chỉ cấp: ${certificate}</p>
+    </article>
+  </main>
+  <nav>
+    <p>Chuyển tiếp tới: <a href="${url}">${title}</a> | <a href="https://antoan.web.app/">Trang chủ SafetyConnect</a></p>
+  </nav>
 </body>
 </html>`;
 

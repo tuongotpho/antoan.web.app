@@ -8,6 +8,8 @@
     "build": "vite build && node scripts/generateSitemap.js",
     "build:only": "vite build",
     "sitemap": "node scripts/generateSitemap.js",
+    "gsc:report": "node scripts/fullGSCReport.mjs",
+    "gsc:index": "node scripts/notifyGoogleIndexing.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

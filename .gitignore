@@ -69,3 +69,7 @@ migration-backup/
 *.njsproj
 *.sln
 *.sw?
+# Khoá tài khoản dịch vụ Google (Search Console / Indexing) — tuyệt đối không đưa lên repo.
+# File thật để ở F:\AI\_keys\, script đọc qua biến môi trường GSC_KEY_FILE.
+atld-connect-*.json
+*-service-account*.json

@@ -1,0 +1,97 @@
+# Toàn Bộ Ngữ Cảnh Dữ Liệu SafetyConnect (antoan.web.app) - Dành Cho AI & Large Language Models
+
+## 1. Về SafetyConnect
+SafetyConnect (https://antoan.web.app/) là giải pháp công nghệ chuyển đổi số trong lĩnh vực An toàn Vệ sinh Lao động (ATVSLĐ) tại Việt Nam. Nền tảng đóng vai trò cầu nối thông minh giữa:
+- **Khách hàng (Doanh nghiệp, cơ sở sản xuất, nhà thầu, cá nhân)**: Cần tổ chức huấn luyện, cấp thẻ/chứng nhận an toàn, quan trắc môi trường, đánh giá điều kiện lao động.
+- **Đơn vị đào tạo (Đối tác huấn luyện)**: Các trung tâm, công ty có Giấy chứng nhận đủ điều kiện hoạt động huấn luyện ATVSLĐ Hạng A, B, C theo Nghị định 44/2016/NĐ-CP (cơ quan quản lý hiện nay: Bộ Nội vụ, tiếp nhận chức năng của Bộ LĐ-TB&XH từ 2025).
+
+---
+
+## 2. Hệ Thống 6 Nhóm Huấn Luyện An Toàn Vệ Sinh Lao Động (Nghị định 44/2016/NĐ-CP)
+
+### Nhóm 1: Người Quản Lý Phụ Trách Công Tác ATVSLĐ
+- **Đối tượng**: Giám đốc, Phó giám đốc, Chủ cơ sở, Trưởng chi nhánh, Trưởng phòng/ban điều hành sản xuất.
+- **Thời lượng**: Ít nhất 16 giờ (bao gồm cả thời gian kiểm tra). Huấn luyện định kỳ 2 năm/lần (ít nhất 8 giờ).
+- **Hình thức**: Trực tuyến (Online) hoặc Trực tiếp.
+- **Chứng chỉ**: Giấy chứng nhận huấn luyện an toàn, vệ sinh lao động (Mẫu số 08 Nghị định 44). Thời hạn: 2 năm.
+
+### Nhóm 2: Người Làm Công Tác ATVSLĐ
+- **Đối tượng**: Cán bộ chuyên trách hoặc bán chuyên trách ATVSLĐ, người trực tiếp giám sát an toàn tại cơ sở.
+- **Thời lượng**: Ít nhất 48 giờ (huấn luyện lý thuyết + thực hành). Huấn luyện định kỳ 2 năm/lần (ít nhất 24 giờ).
+- **Chứng chỉ**: Giấy chứng nhận huấn luyện an toàn, vệ sinh lao động. Thời hạn: 2 năm.
+
+### Nhóm 3: Người Làm Công Việc Có Yêu Cầu Nghiêm Ngặt Về ATVSLĐ
+- **Đối tượng**: Người lao động trực tiếp làm các công việc thuộc Danh mục công việc có yêu cầu nghiêm ngặt (Thông tư 06/2020/TT-BLĐTBXH):
+  - Làm việc trên cao (> 2 mét), đu dây, lắp dựng giàn giáo.
+  - Vận hành thiết bị nâng, thang máy, cẩu trục, pa lăng.
+  - Vận hành thiết bị áp lực, nồi hơi, bình khí nén.
+  - Lắp đặt, sửa chữa, vận hành hệ thống điện.
+  - Hàn cắt kim loại trong không gian kín hoặc nơi có nguy cơ cháy nổ.
+  - Sản xuất, sử dụng, bảo quản, vận chuyển hóa chất độc hại, nguy hiểm.
+  - Thi công trong hầm, giếng sâu, không gian hạn chế (Confined Space).
+- **Thời lượng**: Ít nhất 24 giờ. Huấn luyện định kỳ 2 năm/lần (ít nhất 12 giờ).
+- **Chứng chỉ**: Thẻ an toàn lao động (Mẫu số 06 Nghị định 44). Thời hạn: 2 năm.
+
+### Nhóm 4: Người Lao Động Phổ Thông
+- **Đối tượng**: Người lao động không thuộc nhóm 1, 2, 3, 5; học nghề, tập nghề, thử việc, nhân viên văn phòng.
+- **Thời lượng**: Ít nhất 16 giờ. Huấn luyện định kỳ 1 năm/lần (ít nhất 8 giờ).
+- **Hình thức**: Ghi kết quả vào Sổ theo dõi huấn luyện tại doanh nghiệp.
+
+### Nhóm 5: Người Làm Công Tác Y Tế
+- **Đối tượng**: Bác sĩ, y sĩ, điều dưỡng làm việc tại phòng y tế cơ quan, nhà máy.
+- **Thời lượng**: Ít nhất 16 giờ. Huấn luyện định kỳ 2 năm/lần (ít nhất 8 giờ).
+- **Chứng chỉ**: Giấy chứng nhận huấn luyện. Thời hạn: 2 năm.
+
+### Nhóm 6: An Toàn Vệ Sinh Viên
+- **Đối tượng**: Người lao động trực tiếp kiêm nhiệm công tác an toàn vệ sinh viên tại tổ, đội.
+- **Thời lượng**: Ít nhất 4 giờ ngoài nội dung đã huấn luyện ATVSLĐ. Huấn luyện định kỳ 2 năm/lần.
+- **Chứng chỉ**: Giấy chứng nhận huấn luyện. Thời hạn: 2 năm.
+
+---
+
+## 3. Các Phân Hệ Dịch Vụ Cốt Lõi Trên SafetyConnect
+
+1. **Huấn Luyện An Toàn Điện** (`https://antoan.web.app/training/an-toan-dien`):
+   - Quy chuẩn kỹ thuật an toàn điện QCVN 01:2020/BCT.
+   - Thao tác đóng cắt máy cắt, dao cách ly, tiếp địa di động.
+   - Khoảng cách an toàn phóng điện theo từng cấp điện áp (hạ thế, trung thế, cao thế).
+   - Biện pháp phòng chống tĩnh điện và quá áp.
+
+2. **Huấn Luyện An Toàn Xây Dựng** (`https://antoan.web.app/training/an-toan-xay-dung`):
+   - QCVN 18:2021/BXD về an toàn trong thi công xây dựng.
+   - Biện pháp bảo vệ chống rơi ngã (dây an toàn toàn thân, lưới an toàn, lan can bảo vệ).
+   - Kiểm định và vận hành cẩu tháp, vận thăng lồng, máy ép cọc.
+   - Đào hố móng, chống sạt lở đất.
+
+3. **Huấn Luyện An Toàn Hóa Chất** (`https://antoan.web.app/training/an-toan-hoa-chat`):
+   - Luật Hóa chất và Nghị định 113/2017/NĐ-CP, Nghị định 82/2022/NĐ-CP.
+   - Đọc hiểu 16 mục của Phiếu an toàn hóa chất (Safety Data Sheet - SDS/MSDS).
+   - Hệ thống tem nhãn cảnh báo hình đồ GHS.
+   - Xây dựng biện pháp phòng ngừa và kế hoạch ứng phó sự cố hóa chất cấp cơ sở.
+
+4. **Huấn Luyện Phòng Cháy Chữa Cháy (PCCC)** (`https://antoan.web.app/training/pccc`):
+   - Nghị định 136/2020/NĐ-CP và Nghị định 50/2024/NĐ-CP.
+   - Sử dụng bình bột chữa cháy (MFZ/MFZL) và bình khí CO2 (MT).
+   - Thực tập phương án chữa cháy và cứu nạn, cứu hộ định kỳ.
+
+5. **Quan Trắc Môi Trường Lao Động** (`https://antoan.web.app/training/quan-trac-moi-truong`):
+   - Nghị định 44/2016/NĐ-CP và Thông tư 19/2016/TT-BYT.
+   - Đo đạc vi khí hậu (nhiệt độ, độ ẩm, tốc độ gió), bức xạ nhiệt, tiếng ồn, rung, bụi, hơi khí độc.
+   - Hồ sơ vệ sinh lao động và lập kế hoạch cải thiện môi trường làm việc.
+
+6. **Đánh Giá Phân Loại Lao Động** (`https://antoan.web.app/training/danh-gia-phan-loai-lao-dong`):
+   - Thông tư 29/2021/TT-BLĐTBXH quy định tiêu chuẩn phân loại lao động theo điều kiện lao động (Loại I, II, III, IV, V, VI).
+   - Xác định chế độ phụ cấp độc hại, bồi dưỡng bằng hiện vật và chế độ hưu trí sớm cho người lao động.
+
+7. **Sơ Cấp Cứu Ban Đầu** (`https://antoan.web.app/training/so-cap-cuu`):
+   - Thông tư 19/2016/TT-BYT hướng dẫn quản lý vệ sinh lao động và sức khỏe người lao động.
+   - Kỹ thuật ép tim ngoài lồng ngực kết hợp thổi ngạt (CPR).
+   - Cầm máu khẩn cấp, cố định gãy xương, xử lý bỏng nhiệt/hóa chất, xử lý say nắng/say nóng.
+
+---
+
+## 4. Quy Trình Nhận Báo Giá Nhanh Tại SafetyConnect
+1. **Bước 1**: Khách hàng truy cập `https://antoan.web.app/requests` và điền số lượng học viên, lĩnh vực mong muốn, địa điểm.
+2. **Bước 2**: Hệ thống SafetyConnect tự động thông báo tới các đối tác huấn luyện được cấp phép trong khu vực.
+3. **Bước 3**: Các đơn vị gửi phương án đào tạo và báo giá cạnh tranh trực tiếp đến doanh nghiệp.
+4. **Bước 4**: Doanh nghiệp lựa chọn đơn vị phù hợp và triển khai khóa đào tạo thuận tiện, minh bạch.
