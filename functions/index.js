@@ -7,6 +7,7 @@ const {
   escapeTelegramHtml,
   formatTrainingRequestMessage,
 } = require('./telegramFormat');
+const { tongHopPhanHoi } = require('./tongHopPhanHoi');
 
 initializeApp();
 const db = getFirestore();
@@ -906,3 +907,25 @@ exports.trainingMetaTags = functions.https.onRequest(async (req, res) => {
   datThongTinCache(res, 3600);
   res.send(html);
 });
+
+/**
+ * Cloud Function V1: Tổng hợp phiếu nhận xét học viên → số liệu công khai.
+ *
+ * Chạy mỗi khi một phiếu trong `feedbacks` được tạo / sửa / xoá (sửa = admin
+ * bật "hiện trang chủ" cho một câu nhận xét; xoá = admin xoá lớp). Đọc lại
+ * TOÀN BỘ phiếu rồi tính lại từ đầu — vài trăm phiếu mỗi năm, tính lại toàn
+ * bộ rẻ hơn và không bao giờ lệch so với cộng dồn từng bước.
+ *
+ * Kết quả ghi vào `congKhai/phanHoiHocVien`: tài liệu duy nhất khách vãng lai
+ * đọc được, KHÔNG chứa họ tên. Trang chủ đọc từ đây, không đụng vào phiếu gốc.
+ */
+exports.tongHopPhanHoiHocVien = functions.firestore
+  .document('feedbacks/{feedbackId}')
+  .onWrite(async () => {
+    const db = getFirestore();
+    const snap = await db.collection('feedbacks').get();
+    const phieu = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const tongHop = tongHopPhanHoi(phieu);
+    await db.collection('congKhai').doc('phanHoiHocVien').set(tongHop);
+    console.log(`Đã tổng hợp ${tongHop.soPhieu} phiếu từ ${tongHop.soLop} lớp → congKhai/phanHoiHocVien`);
+  });
