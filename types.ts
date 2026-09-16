@@ -268,3 +268,76 @@ export function partnerProfileToTrustedPartner(partner: PartnerProfile): Trusted
     updatedAt: partner.createdAt,
   };
 }
+
+// === PHẢN HỒI HỌC VIÊN SAU BUỔI GIẢNG AN TOÀN ===
+//
+// Mỗi buổi giảng là một "lớp" (FeedbackSession) có mã ngắn riêng, in thành
+// QR. Học viên quét QR, điền form không cần đăng nhập, ra một Feedback.
+// Một QR cho MỖI lớp — không dùng QR chung — để kết quả gắn đúng lớp và
+// đóng được từng lớp sau khi hết hạn nhận xét.
+
+/** Khoá của 5 tiêu chí chấm sao. Giữ nguyên thứ tự này khi hiển thị. */
+export const TIEU_CHI_PHAN_HOI = [
+  { key: 'noiDung', label: 'Nội dung bài giảng dễ hiểu, sát thực tế' },
+  { key: 'giangVien', label: 'Giảng viên truyền đạt rõ ràng, trả lời được câu hỏi' },
+  { key: 'taiLieu', label: 'Tài liệu, hình ảnh, ví dụ minh hoạ' },
+  { key: 'toChuc', label: 'Thời lượng và tổ chức lớp học' },
+  { key: 'tongThe', label: 'Đánh giá chung về buổi học' },
+] as const;
+
+export type TieuChiKey = (typeof TIEU_CHI_PHAN_HOI)[number]['key'];
+
+export const VI_TRI_HOC_VIEN = [
+  { key: 'cong-nhan', label: 'Công nhân / người lao động trực tiếp' },
+  { key: 'to-truong', label: 'Tổ trưởng / đội trưởng' },
+  { key: 'can-bo-an-toan', label: 'Cán bộ an toàn' },
+  { key: 'quan-ly', label: 'Quản lý / lãnh đạo' },
+  { key: 'khac', label: 'Khác' },
+] as const;
+
+export type ViTriHocVien = (typeof VI_TRI_HOC_VIEN)[number]['key'];
+
+export interface FeedbackSession {
+  /** Mã lớp ngắn, cũng là id tài liệu. Ví dụ: K1609-7F */
+  id: string;
+  tenKhoa: string; // Tên khoá / chủ đề buổi giảng
+  ngayGiang: string; // Ngày giảng, dạng YYYY-MM-DD
+  donVi: string; // Đơn vị học viên (tuỳ chọn)
+  giangVien: string; // Tên giảng viên
+  ghiChu: string;
+  status: 'open' | 'closed'; // 'closed' = không nhận bài mới nữa
+  createdAt: Timestamp;
+  createdBy: string; // uid admin tạo lớp
+}
+
+export interface Feedback {
+  id: string;
+  sessionId: string; // Mã lớp
+  hoTen: string; // Tuỳ chọn, cho phép để trống (ẩn danh)
+  donVi: string; // Bắt buộc
+  viTri: ViTriHocVien;
+  ratings: Record<TieuChiKey, number>; // Mỗi tiêu chí 1..5
+  huuIch: string; // Điều hữu ích nhất
+  gopY: string; // Cần bổ sung / thay đổi
+  gioiThieu: boolean; // Có giới thiệu cho đồng nghiệp không
+  createdAt: Timestamp;
+  /** Admin bật để đưa câu nhận xét này lên trang chủ (ẩn họ tên). */
+  hienTrangChu?: boolean;
+}
+
+/**
+ * Số liệu công khai ở `congKhai/phanHoiHocVien`, do Cloud Function
+ * `tongHopPhanHoiHocVien` tính từ toàn bộ phiếu. Không chứa họ tên.
+ * Khuôn dữ liệu định nghĩa ở functions/tongHopPhanHoi.js.
+ */
+export interface ThongKeCongKhai {
+  duDuLieu: boolean; // false khi chưa đủ 5 phiếu → trang chủ không hiện
+  soPhieu: number;
+  soLop: number;
+  diemChung: number | null; // trung bình "đánh giá chung", 1 chữ số thập phân
+  diemTieuChi: Record<TieuChiKey, number | null>;
+  phanBoTongThe: [number, number, number, number, number]; // số phiếu 1..5 sao
+  tiLeGioiThieu: number | null; // phần trăm 0..100
+  nhanXetNoiBat: { id: string; noiDung: string; nguoi: string; diem: number }[];
+  capNhatLuc: number; // ms
+}

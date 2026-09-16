@@ -217,6 +217,89 @@ service cloud.firestore {
       );
     }
 
+    // === PHẢN HỒI HỌC VIÊN SAU BUỔI GIẢNG ===
+    //
+    // Hai bộ dữ liệu: `feedbackSessions` (lớp học, mỗi lớp một mã QR) và
+    // `feedbacks` (bài nhận xét của học viên). Học viên KHÔNG đăng nhập —
+    // quét QR là điền được — nên `feedbacks` mở create cho người lạ, giống
+    // trainingRequests. Bù lại phải kiểm khuôn dữ liệu rất chặt ở đây, vì
+    // không có lớp bảo vệ nào khác giữa Internet và cơ sở dữ liệu.
+
+    match /feedbackSessions/{sessionId} {
+      // Trang form cần đọc tên khoá, ngày, trạng thái để hiện cho học viên.
+      // Chỉ cho `get` từng lớp theo mã; `list` khoá — không để ai quét ra
+      // toàn bộ danh sách lớp rồi đoán mã gửi rác.
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /feedbacks/{feedbackId} {
+      function lopDangMo(id) {
+        return exists(/databases/$(database)/documents/feedbackSessions/$(id))
+               && get(/databases/$(database)/documents/feedbackSessions/$(id)).data.status == 'open';
+      }
+      function diemHopLe(diem) {
+        return diem is int && diem >= 1 && diem <= 5;
+      }
+      function chuoiToiDa(v, n) {
+        return v is string && v.size() <= n;
+      }
+
+      // Bất kỳ ai cũng gửi được, nhưng chỉ khi:
+      //  - lớp tồn tại và đang mở,
+      //  - đúng và đủ các trường, không thừa trường lạ,
+      //  - 5 điểm đều là số nguyên 1..5,
+      //  - độ dài chữ có trần (khớp GIOI_HAN trong utils/phanHoi.ts),
+      //  - createdAt do server đóng dấu, không tự đặt được.
+      allow create: if lopDangMo(request.resource.data.sessionId)
+        && request.resource.data.keys().hasOnly([
+             'sessionId', 'hoTen', 'donVi', 'viTri', 'ratings',
+             'huuIch', 'gopY', 'gioiThieu', 'createdAt'
+           ])
+        && request.resource.data.keys().hasAll([
+             'sessionId', 'hoTen', 'donVi', 'viTri', 'ratings',
+             'huuIch', 'gopY', 'gioiThieu', 'createdAt'
+           ])
+        && chuoiToiDa(request.resource.data.hoTen, 100)
+        && request.resource.data.donVi is string
+        && request.resource.data.donVi.size() >= 1
+        && request.resource.data.donVi.size() <= 200
+        && request.resource.data.viTri in ['cong-nhan', 'to-truong', 'can-bo-an-toan', 'quan-ly', 'khac']
+        && request.resource.data.ratings.keys().hasOnly(['noiDung', 'giangVien', 'taiLieu', 'toChuc', 'tongThe'])
+        && request.resource.data.ratings.keys().hasAll(['noiDung', 'giangVien', 'taiLieu', 'toChuc', 'tongThe'])
+        && diemHopLe(request.resource.data.ratings.noiDung)
+        && diemHopLe(request.resource.data.ratings.giangVien)
+        && diemHopLe(request.resource.data.ratings.taiLieu)
+        && diemHopLe(request.resource.data.ratings.toChuc)
+        && diemHopLe(request.resource.data.ratings.tongThe)
+        && chuoiToiDa(request.resource.data.huuIch, 2000)
+        && chuoiToiDa(request.resource.data.gopY, 2000)
+        && request.resource.data.gioiThieu is bool
+        && request.resource.data.createdAt == request.time;
+
+      // Nhận xét là dữ liệu riêng của người dạy: chỉ admin đọc và xoá.
+      allow read, delete: if isAdmin();
+
+      // Nội dung phiếu giữ nguyên như học viên gửi — kể cả admin cũng không
+      // sửa được điểm hay câu chữ. Admin CHỈ được bật/tắt đúng một cờ
+      // `hienTrangChu` để chọn câu nhận xét đưa lên trang chủ.
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hienTrangChu'])
+        && request.resource.data.hienTrangChu is bool;
+    }
+
+    // === SỐ LIỆU CÔNG KHAI (do Cloud Function tổng hợp) ===
+    //
+    // Trang chủ đọc điểm trung bình, số phiếu, câu nhận xét đã duyệt từ đây.
+    // Không có họ tên. Chỉ Cloud Function (Admin SDK, bỏ qua rules) ghi được —
+    // khoá hẳn phía client để không ai tự "vẽ" số liệu.
+    match /congKhai/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+
     // === DEFAULT DENY ===
 
     match /{document=**} {

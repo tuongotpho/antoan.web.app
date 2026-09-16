@@ -16,6 +16,7 @@ import {
   collection,
   query,
   where,
+  serverTimestamp,
 } from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
@@ -97,6 +98,26 @@ beforeEach(async () => {
     await setDoc(doc(db, 'trainingRequests', 'yc1'), {
       companyName: 'Điện lực A & B',
       clientEmail: 'a@b.vn',
+    });
+    await setDoc(doc(db, 'feedbackSessions', 'K1609-7F'), {
+      tenKhoa: 'An toàn điện nhóm 3',
+      ngayGiang: '2026-09-16',
+      status: 'open',
+    });
+    await setDoc(doc(db, 'feedbackSessions', 'K0109-AB'), {
+      tenKhoa: 'Lớp đã đóng',
+      ngayGiang: '2026-09-01',
+      status: 'closed',
+    });
+    await setDoc(doc(db, 'feedbacks', 'fb1'), {
+      sessionId: 'K1609-7F',
+      hoTen: '',
+      donVi: 'Đội QLVH 1',
+      viTri: 'cong-nhan',
+      ratings: { noiDung: 5, giangVien: 5, taiLieu: 4, toChuc: 4, tongThe: 5 },
+      huuIch: 'Phần cắt điện, treo biển',
+      gopY: '',
+      gioiThieu: true,
     });
   });
 });
@@ -294,5 +315,173 @@ describe('firestore.rules — dữ liệu kinh doanh', () => {
     if (boQuaNeuKhongCoEmulator()) return;
     const db = testEnv!.authenticatedContext(UID_NGUOILA).firestore();
     await assertFails(setDoc(doc(db, 'admins', UID_NGUOILA), { role: 'admin' }));
+  });
+});
+
+describe('firestore.rules — phản hồi học viên sau buổi giảng', () => {
+  const baiHopLe = () => ({
+    sessionId: 'K1609-7F',
+    hoTen: 'Nguyễn Văn A',
+    donVi: 'Đội QLVH 2',
+    viTri: 'to-truong',
+    ratings: { noiDung: 4, giangVien: 5, taiLieu: 3, toChuc: 4, tongThe: 4 },
+    huuIch: 'Ví dụ về tai nạn thật',
+    gopY: 'Nên có thêm thực hành',
+    gioiThieu: true,
+    createdAt: serverTimestamp(),
+  });
+
+  it('học viên KHÔNG đăng nhập gửi được bài vào lớp đang mở', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertSucceeds(setDoc(doc(db, 'feedbacks', 'fb_moi'), baiHopLe()));
+  });
+
+  it('để trống họ tên (ẩn danh) vẫn gửi được', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertSucceeds(setDoc(doc(db, 'feedbacks', 'fb_an_danh'), { ...baiHopLe(), hoTen: '' }));
+  });
+
+  it('lớp ĐÃ ĐÓNG thì không nhận bài nữa', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_dong'), { ...baiHopLe(), sessionId: 'K0109-AB' })
+    );
+  });
+
+  it('mã lớp không tồn tại thì bị chặn', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_la'), { ...baiHopLe(), sessionId: 'KHONG-CO' })
+    );
+  });
+
+  it('điểm ngoài 1..5 bị chặn', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    const bai = baiHopLe();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_6sao'), {
+        ...bai,
+        ratings: { ...bai.ratings, tongThe: 6 },
+      })
+    );
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_0sao'), {
+        ...bai,
+        ratings: { ...bai.ratings, noiDung: 0 },
+      })
+    );
+  });
+
+  it('thiếu một tiêu chí chấm điểm bị chặn', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_thieu'), {
+        ...baiHopLe(),
+        ratings: { noiDung: 4, giangVien: 5, taiLieu: 3, toChuc: 4 },
+      })
+    );
+  });
+
+  it('trống đơn vị bị chặn', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(setDoc(doc(db, 'feedbacks', 'fb_trong'), { ...baiHopLe(), donVi: '' }));
+  });
+
+  it('chữ quá dài bị chặn (chống nhồi rác)', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_dai'), { ...baiHopLe(), gopY: 'x'.repeat(2001) })
+    );
+  });
+
+  it('thêm trường lạ bị chặn', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_thua'), { ...baiHopLe(), isAdmin: true })
+    );
+  });
+
+  it('tự đặt thời gian gửi bị chặn — phải để server đóng dấu', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(db, 'feedbacks', 'fb_gia_gio'), {
+        ...baiHopLe(),
+        createdAt: new Date('2020-01-01'),
+      })
+    );
+  });
+
+  it('người lạ và đối tác KHÔNG đọc được bài nhận xét', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    await assertFails(getDoc(doc(testEnv!.unauthenticatedContext().firestore(), 'feedbacks', 'fb1')));
+    await assertFails(
+      getDocs(collection(testEnv!.authenticatedContext(UID_DOITAC).firestore(), 'feedbacks'))
+    );
+  });
+
+  it('admin đọc được và xoá được bài; không sửa được nội dung', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(getDocs(collection(db, 'feedbacks')));
+    await assertFails(updateDoc(doc(db, 'feedbacks', 'fb1'), { gopY: 'đã bị sửa' }));
+    await assertFails(
+      updateDoc(doc(db, 'feedbacks', 'fb1'), { hienTrangChu: true, gopY: 'lách kèm cờ' })
+    );
+    await assertSucceeds(deleteDoc(doc(db, 'feedbacks', 'fb1')));
+  });
+
+  it('admin bật/tắt được cờ "hiện trang chủ"; người lạ thì không', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const dbAdmin = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(updateDoc(doc(dbAdmin, 'feedbacks', 'fb1'), { hienTrangChu: true }));
+    await assertFails(updateDoc(doc(dbAdmin, 'feedbacks', 'fb1'), { hienTrangChu: 'có' }));
+    const dbLa = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(updateDoc(doc(dbLa, 'feedbacks', 'fb1'), { hienTrangChu: true }));
+  });
+
+  it('số liệu công khai: ai cũng đọc được, không ai ghi được từ trình duyệt', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const dbLa = testEnv!.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(dbLa, 'congKhai', 'phanHoiHocVien')));
+    await assertFails(setDoc(doc(dbLa, 'congKhai', 'phanHoiHocVien'), { diemChung: 5 }));
+    const dbAdmin = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertFails(setDoc(doc(dbAdmin, 'congKhai', 'phanHoiHocVien'), { diemChung: 5 }));
+  });
+
+  it('học viên đọc được thông tin MỘT lớp theo mã, nhưng không liệt kê được', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const db = testEnv!.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(db, 'feedbackSessions', 'K1609-7F')));
+    await assertFails(getDocs(collection(db, 'feedbackSessions')));
+  });
+
+  it('chỉ admin tạo, đóng và xoá lớp', async () => {
+    if (boQuaNeuKhongCoEmulator()) return;
+    const dbLa = testEnv!.unauthenticatedContext().firestore();
+    await assertFails(
+      setDoc(doc(dbLa, 'feedbackSessions', 'K9999-ZZ'), { tenKhoa: 'giả', status: 'open' })
+    );
+    await assertFails(updateDoc(doc(dbLa, 'feedbackSessions', 'K1609-7F'), { status: 'closed' }));
+
+    const dbAdmin = testEnv!.authenticatedContext(UID_ADMIN).firestore();
+    await assertSucceeds(
+      setDoc(doc(dbAdmin, 'feedbackSessions', 'K1709-AA'), {
+        tenKhoa: 'Lớp mới',
+        ngayGiang: '2026-09-17',
+        status: 'open',
+      })
+    );
+    await assertSucceeds(updateDoc(doc(dbAdmin, 'feedbackSessions', 'K1609-7F'), { status: 'closed' }));
+    await assertSucceeds(deleteDoc(doc(dbAdmin, 'feedbackSessions', 'K0109-AB')));
   });
 });

@@ -25,7 +25,9 @@ const appVersion = process.env.APP_VERSION || releaseTag();
 export default defineConfig(() => {
   return {
     server: {
-      port: 3000,
+      // Mặc định 3000; khi cổng bận (dự án khác đang chạy), bộ xem trước
+      // cấp cổng khác qua biến PORT.
+      port: Number(process.env.PORT) || 3000,
       host: '0.0.0.0',
     },
     plugins: [tailwindcss(), react()],

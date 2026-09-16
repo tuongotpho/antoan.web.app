@@ -4,10 +4,11 @@ import { useAdminData } from '../hooks/useAdminData';
 import { useAdminActions } from '../hooks/useAdminActions';
 import DashboardTab from '../components/admin/DashboardTab';
 import SeoTab from '../components/admin/SeoTab';
+import PhanHoiTab from '../components/admin/PhanHoiTab';
 import BlogManagement from '../components/BlogManagement';
 import SEOHead from '../components/SEOHead';
 
-type AdminTab = 'dashboard' | 'blog' | 'seo';
+type AdminTab = 'dashboard' | 'blog' | 'phanhoi' | 'seo';
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -114,7 +115,7 @@ const AdminPage: React.FC = () => {
 
       {/* Tabs */}
       <div className="mb-8 border-b border-gray-200">
-        <nav className="flex gap-4">
+        <nav className="flex gap-4 overflow-x-auto whitespace-nowrap">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`px-6 py-3 font-semibold transition-all ${activeTab === 'dashboard'
@@ -134,6 +135,16 @@ const AdminPage: React.FC = () => {
           >
             <i className="fas fa-newspaper mr-2"></i>
             Quản lý Blog
+          </button>
+          <button
+            onClick={() => setActiveTab('phanhoi')}
+            className={`px-6 py-3 font-semibold transition-all ${activeTab === 'phanhoi'
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-gray-600 hover:text-gray-800'
+              }`}
+          >
+            <i className="fas fa-qrcode mr-2"></i>
+            Phản hồi học viên
           </button>
           <button
             onClick={() => setActiveTab('seo')}
@@ -192,6 +203,9 @@ const AdminPage: React.FC = () => {
 
       {/* Blog Management Tab */}
       {activeTab === 'blog' && user && <BlogManagement user={user} />}
+
+      {/* Phản hồi học viên sau buổi giảng */}
+      {activeTab === 'phanhoi' && user && <PhanHoiTab user={user} />}
 
       {/* SEO Tools Tab */}
       {activeTab === 'seo' && <SeoTab />}

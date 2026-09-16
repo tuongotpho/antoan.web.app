@@ -2,6 +2,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import {
   getFirestore,
+  connectFirestoreEmulator,
   Firestore,
   collection,
   doc,
@@ -30,6 +31,7 @@ import {
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   getAuth,
+  connectAuthEmulator,
   Auth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -85,6 +87,21 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 // Cloud Functions đang deploy ở us-central1 (mặc định của firebase-functions v1)
 const functionsInstance = getFunctions(app);
+
+// Chạy thử trên máy với Firebase emulator thay vì dữ liệu thật.
+//
+// Chỉ bật khi CẢ HAI: đang chạy `npm run dev` VÀ .env.local có
+// VITE_DUNG_EMULATOR=1. Bản build đưa lên hosting không bao giờ vào nhánh này
+// (import.meta.env.DEV là false lúc build), nên không có nguy cơ bản thật
+// trỏ nhầm về localhost.
+//
+// Dùng để thử rules mới trước khi deploy — như đóng điện thử trên bàn thí
+// nghiệm trước khi lắp lên lưới.
+if (import.meta.env.DEV && import.meta.env.VITE_DUNG_EMULATOR === '1') {
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  console.warn('[dev] Đang nối vào Firebase emulator (Firestore 8080, Auth 9099)');
+}
 
 /**
  * Gửi email qua Cloud Function.

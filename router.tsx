@@ -18,6 +18,7 @@ const ChatPage = lazyCoTaiLai(() => import('./pages/ChatPage'));
 const AdminPage = lazyCoTaiLai(() => import('./pages/AdminPage'));
 const TrainingLandingPage = lazyCoTaiLai(() => import('./pages/TrainingLandingPage'));
 const AllPartnersPage = lazyCoTaiLai(() => import('./pages/AllPartnersPage'));
+const DanhGiaPage = lazyCoTaiLai(() => import('./pages/DanhGiaPage'));
 const NotFoundPage = lazyCoTaiLai(() => import('./pages/NotFoundPage'));
 
 export const router = createBrowserRouter([
@@ -62,6 +63,11 @@ export const router = createBrowserRouter([
       {
         path: 'training/:type',
         element: <TrainingLandingPage />,
+      },
+      // Phiếu nhận xét học viên sau buổi giảng — mở từ mã QR, không cần đăng nhập.
+      {
+        path: 'danh-gia/:maLop',
+        element: <DanhGiaPage />,
       },
       // Địa chỉ không khớp route nào.
       //
